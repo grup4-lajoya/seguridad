@@ -137,7 +137,6 @@ function actualizarDisplay() {
 // ALMACENAMIENTO SEGURO (EN MEMORIA)
 // ============================================
 function guardarSesion(token, usuario) {
-  // Guardar en memoria (variables JavaScript)
   window.sessionData = {
     token,
     usuario,
@@ -154,10 +153,13 @@ function limpiarSesion() {
 }
 
 // ============================================
-// LLAMADAS A LA API (Edge Functions)
+// LLAMADAS A LA API (Edge Functions) - CON DEBUG
 // ============================================
 async function solicitarOTP(identificador) {
   try {
+    console.log('🔍 Solicitando OTP para:', identificador)
+    console.log('📡 URL:', CONFIG.EDGE_FUNCTIONS.SOLICITAR_OTP)
+    
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.SOLICITAR_OTP, {
       method: 'POST',
       headers: {
@@ -167,7 +169,11 @@ async function solicitarOTP(identificador) {
       body: JSON.stringify({ identificador }),
     })
 
+    console.log('📥 Status:', response.status)
+    console.log('📥 Status Text:', response.statusText)
+
     const data = await response.json()
+    console.log('📦 Respuesta completa:', data)
 
     if (!data.success) {
       throw new Error(data.error || 'Error al solicitar código')
@@ -175,16 +181,22 @@ async function solicitarOTP(identificador) {
 
     return data
   } catch (error) {
-    console.error('Error en solicitarOTP:', error)
+    console.error('❌ Error en solicitarOTP:', error)
+    console.error('❌ Error completo:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    })
     throw error
   }
 }
 
 async function verificarOTP(identificador, codigo) {
   try {
-    // Obtener información del dispositivo
+    console.log('🔐 Verificando OTP:', { identificador, codigo })
+    
     const dispositivo = navigator.userAgent
-    const ip = 'N/A' // La IP se obtiene en el backend
+    const ip = 'N/A'
 
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.VERIFICAR_OTP, {
       method: 'POST',
@@ -200,7 +212,10 @@ async function verificarOTP(identificador, codigo) {
       }),
     })
 
+    console.log('📥 Status verificación:', response.status)
+    
     const data = await response.json()
+    console.log('📦 Respuesta verificación:', data)
 
     if (!data.success) {
       throw new Error(data.error || 'Código incorrecto')
@@ -208,7 +223,7 @@ async function verificarOTP(identificador, codigo) {
 
     return data
   } catch (error) {
-    console.error('Error en verificarOTP:', error)
+    console.error('❌ Error en verificarOTP:', error)
     throw error
   }
 }
@@ -260,7 +275,8 @@ elements.formIdentificador.addEventListener('submit', async (e) => {
     mostrarFormOTPConCodigo(resultado)
     
   } catch (error) {
-    mostrarAlerta(error.message, 'error')
+    console.error('❌ Error capturado:', error)
+    mostrarAlerta(`Error: ${error.message}`, 'error')
   } finally {
     ocultarSpinner(elements.btnSolicitarOTP)
   }
@@ -313,16 +329,20 @@ elements.codigo.addEventListener('input', (e) => {
 // INICIALIZACIÓN
 // ============================================
 async function init() {
+  console.log('🚀 Iniciando aplicación...')
+  console.log('⚙️ Configuración:', {
+    url: CONFIG.SUPABASE_URL,
+    hasAnon: !!CONFIG.SUPABASE_ANON_KEY,
+    functions: CONFIG.EDGE_FUNCTIONS
+  })
+  
   // Verificar si ya hay una sesión activa
   const sesionValida = await verificarSesionActiva()
   
   if (sesionValida) {
-    // Redirigir al dashboard si ya está autenticado
     window.location.href = CONFIG.RUTAS.DASHBOARD
   } else {
-    // Limpiar cualquier sesión inválida
     limpiarSesion()
-    // Mostrar formulario de login
     mostrarFormIdentificador()
   }
 }
