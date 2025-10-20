@@ -11,7 +11,7 @@ const CONFIG = {
   
   // URLs de las Edge Functions
   EDGE_FUNCTIONS: {
-    SOLICITAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/solicityar-otp',
+    SOLICITAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/solicitar-otp',
     VERIFICAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-otp',
     VERIFICAR_SESION: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-sesion',
   },
