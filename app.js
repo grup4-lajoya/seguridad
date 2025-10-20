@@ -34,7 +34,7 @@ function mostrarAlerta(mensaje, tipo = 'info') {
   }
 
   elements.alert.className = `alert alert-${tipo}`
-  elements.alert.innerHTML = `<span>${iconos[tipo]}</span><span>${mensaje}</span>`
+  elements.alert.innerHTML = `<span>${iconos[tipo]}</span><div>${mensaje}</div>`
   elements.alert.classList.remove('hidden')
 }
 
@@ -62,74 +62,42 @@ function mostrarFormIdentificador() {
   ocultarAlerta()
 }
 
-function mostrarFormOTP(emailOfuscado) {
-  elements.formIdentificador.classList.add('hidden')
-  elements.formOTP.classList.remove('hidden')
-  elements.codigo.value = ''
-  elements.codigo.focus()
-  iniciarTemporizador(CONFIG.APP.TIMEOUT_OTP)
-  
-  mostrarAlerta(
-    `Código enviado a <strong>${emailOfuscado}</strong>. Revisa tu bandeja de entrada.`,
-    'success'
-  )
-}
-// Agregar esta función después de mostrarFormOTP
 function mostrarFormOTPConCodigo(resultado) {
   elements.formIdentificador.classList.add('hidden')
   elements.formOTP.classList.remove('hidden')
-  elements.codigo.value = ''
+  
+  // Auto-completar el código
+  elements.codigo.value = resultado.codigo
   elements.codigo.focus()
+  
   iniciarTemporizador(CONFIG.APP.TIMEOUT_OTP)
   
-  // Mostrar el código generado
+  // Mostrar información completa del código
   mostrarAlerta(
     `<div style="text-align: center;">
-      <strong>✅ Código de verificación generado</strong><br><br>
-      <div style="font-size: 32px; letter-spacing: 8px; color: #4F46E5; font-weight: bold; margin: 15px 0;">
-        ${resultado.codigo}
+      <strong style="font-size: 16px;">✅ Código generado correctamente</strong>
+      
+      <div class="codigo-display">
+        <div style="font-size: 14px; opacity: 0.9;">Tu código de acceso es:</div>
+        <div class="codigo-numero">${resultado.codigo}</div>
+        <div style="font-size: 12px; opacity: 0.8;">⏰ Válido por 10 minutos</div>
       </div>
-      <div style="margin-top: 15px; font-size: 14px;">
-        Nombre: <strong>${resultado.usuario.nombre}</strong><br>
-        Unidad: <strong>${resultado.usuario.unidad || 'N/A'}</strong><br>
-        Puesto: <strong>${resultado.usuario.puesto_servicio || 'N/A'}</strong>
+      
+      <div class="usuario-info">
+        <div style="margin-bottom: 8px;"><strong>Información del usuario:</strong></div>
+        <div>👤 Nombre: <strong>${resultado.usuario.nombre}</strong></div>
+        <div>🏢 Unidad: <strong>${resultado.usuario.unidad || 'N/A'}</strong></div>
+        <div>📍 Puesto: <strong>${resultado.usuario.puesto_servicio || 'N/A'}</strong></div>
       </div>
-      <div style="margin-top: 15px; color: #dc2626; font-size: 13px;">
-        ⏰ Este código expira en 10 minutos
+      
+      <div style="margin-top: 15px; color: #6b7280; font-size: 13px; line-height: 1.5;">
+        El código ya está ingresado automáticamente.<br>
+        Solo haz clic en <strong>"Verificar e ingresar"</strong>
       </div>
     </div>`,
     'success'
   )
 }
-
-// Modificar el event listener del formulario de identificador
-elements.formIdentificador.addEventListener('submit', async (e) => {
-  e.preventDefault()
-  
-  const identificador = elements.identificador.value.trim()
-  
-  if (!identificador) {
-    mostrarAlerta('Por favor ingresa tu NSA o DNI', 'error')
-    return
-  }
-
-  mostrarSpinner(elements.btnSolicitarOTP, 'Generar código de verificación')
-  ocultarAlerta()
-
-  try {
-    const resultado = await solicitarOTP(identificador)
-    
-    state.identificadorActual = identificador
-    
-    // ✅ Usar la nueva función que muestra el código
-    mostrarFormOTPConCodigo(resultado)
-    
-  } catch (error) {
-    mostrarAlerta(error.message, 'error')
-  } finally {
-    ocultarSpinner(elements.btnSolicitarOTP)
-  }
-})
 
 function iniciarTemporizador(segundos) {
   state.tiempoRestante = segundos
@@ -166,7 +134,7 @@ function actualizarDisplay() {
 }
 
 // ============================================
-// ALMACENAMIENTO SEGURO
+// ALMACENAMIENTO SEGURO (EN MEMORIA)
 // ============================================
 function guardarSesion(token, usuario) {
   // Guardar en memoria (variables JavaScript)
@@ -280,14 +248,17 @@ elements.formIdentificador.addEventListener('submit', async (e) => {
     return
   }
 
-  mostrarSpinner(elements.btnSolicitarOTP, 'Enviar código de verificación')
+  mostrarSpinner(elements.btnSolicitarOTP, 'Generar código de verificación')
   ocultarAlerta()
 
   try {
     const resultado = await solicitarOTP(identificador)
     
     state.identificadorActual = identificador
-    mostrarFormOTP(resultado.email)
+    
+    // Mostrar el código en pantalla
+    mostrarFormOTPConCodigo(resultado)
+    
   } catch (error) {
     mostrarAlerta(error.message, 'error')
   } finally {
