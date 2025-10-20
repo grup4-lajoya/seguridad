@@ -1,4 +1,52 @@
 // ============================================
+// DEVICE FINGERPRINTING
+// ============================================
+async function generarDeviceFingerprint() {
+  const componentes = [];
+
+  // 1. User Agent
+  componentes.push(navigator.userAgent);
+
+  // 2. Idioma
+  componentes.push(navigator.language);
+
+  // 3. Zona horaria
+  componentes.push(Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+  // 4. Resolución de pantalla
+  componentes.push(`${screen.width}x${screen.height}x${screen.colorDepth}`);
+
+  // 5. Platform
+  componentes.push(navigator.platform);
+
+  // 6. Hardware Concurrency
+  componentes.push(navigator.hardwareConcurrency || 0);
+
+  // 7. Canvas Fingerprint
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.textBaseline = 'top';
+  ctx.font = '14px Arial';
+  ctx.fillText('Security', 2, 2);
+  componentes.push(canvas.toDataURL());
+
+  // Concatenar y generar hash
+  const cadena = componentes.join('|||');
+  const hash = await simpleHash(cadena);
+  
+  return hash;
+}
+
+async function simpleHash(texto) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(texto);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+// ============================================
 // ELEMENTOS DEL DOM
 // ============================================
 const elements = {
@@ -21,6 +69,7 @@ let state = {
   identificadorActual: '',
   tiempoRestante: 0,
   intervalId: null,
+  deviceFingerprint: null, // Guardar el fingerprint
 }
 
 // ============================================
@@ -36,6 +85,25 @@ function mostrarAlerta(mensaje, tipo = 'info') {
   elements.alert.className = `alert alert-${tipo}`
   elements.alert.innerHTML = `<span>${iconos[tipo]}</span><div>${mensaje}</div>`
   elements.alert.classList.remove('hidden')
+  
+  // Si es un error de dispositivo, agregar botón para copiar
+  if (tipo === 'error' && mensaje.includes('Código del dispositivo')) {
+    setTimeout(() => {
+      const alertDiv = elements.alert.querySelector('div')
+      const btnCopiar = document.createElement('button')
+      btnCopiar.textContent = '📋 Copiar código'
+      btnCopiar.style.cssText = 'margin-top: 15px; padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;'
+      btnCopiar.onclick = () => {
+        navigator.clipboard.writeText(state.deviceFingerprint).then(() => {
+          btnCopiar.textContent = '✓ Copiado!'
+          setTimeout(() => {
+            btnCopiar.textContent = '📋 Copiar código'
+          }, 2000)
+        })
+      }
+      alertDiv.appendChild(btnCopiar)
+    }, 100)
+  }
 }
 
 function ocultarAlerta() {
@@ -164,7 +232,6 @@ async function solicitarOTP(identificador) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
         'apikey': CONFIG.SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({ identificador }),
@@ -210,6 +277,7 @@ async function verificarOTP(identificador, codigo) {
         codigo,
         dispositivo,
         ip,
+        deviceFingerprint: state.deviceFingerprint, // Enviar el fingerprint
       }),
     })
 
@@ -277,7 +345,35 @@ elements.formIdentificador.addEventListener('submit', async (e) => {
     
   } catch (error) {
     console.error('❌ Error capturado:', error)
-    mostrarAlerta(`Error: ${error.message}`, 'error')
+    
+    // Si el error es por dispositivo no autorizado, mostrar el fingerprint
+    if (error.message && (
+      error.message.includes('DISPOSITIVO_NO_AUTORIZADO') || 
+      error.message.includes('no está autorizado')
+    )) {
+      mostrarAlerta(
+        `<div style="text-align: center;">
+          <strong style="font-size: 16px;">🚫 Dispositivo no autorizado</strong>
+          
+          <div style="margin: 20px 0; padding: 15px; background: #f3f4f6; border-radius: 8px;">
+            <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">
+              Código del dispositivo:
+            </div>
+            <div style="font-size: 14px; font-family: monospace; font-weight: bold; color: #1f2937; word-break: break-all;">
+              ${state.deviceFingerprint}
+            </div>
+          </div>
+          
+          <div style="font-size: 13px; color: #6b7280; line-height: 1.6;">
+            Este dispositivo no está registrado.<br>
+            <strong>Copia el código de arriba</strong> y envíalo al administrador para autorizar este equipo.
+          </div>
+        </div>`,
+        'error'
+      )
+    } else {
+      mostrarAlerta(`Error: ${error.message}`, 'error')
+    }
   } finally {
     ocultarSpinner(elements.btnSolicitarOTP)
   }
@@ -336,6 +432,11 @@ async function init() {
     hasAnon: !!CONFIG.SUPABASE_ANON_KEY,
     functions: CONFIG.EDGE_FUNCTIONS
   })
+  
+  // Generar device fingerprint
+  state.deviceFingerprint = await generarDeviceFingerprint()
+  console.log('📱 DEVICE FINGERPRINT:', state.deviceFingerprint)
+  console.log('👆 Copia este valor para registrar el dispositivo')
   
   // Verificar si ya hay una sesión activa
   const sesionValida = await verificarSesionActiva()
