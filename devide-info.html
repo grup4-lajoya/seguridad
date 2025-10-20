@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Información del Dispositivo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: #4F46E5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 40px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #6B7280;
+      font-size: 14px;
+    }
+
+    .info-box {
+      background: #F3F4F6;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .info-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+      color: #1F2937;
+      word-break: break-all;
+      line-height: 1.6;
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #E5E7EB;
+    }
+
+    .fingerprint-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .fingerprint-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 12px;
+    }
+
+    .fingerprint-value {
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      word-break: break-all;
+      line-height: 1.8;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.copied {
+      background: #10B981;
+    }
+
+    .back-button {
+      background: transparent;
+      color: #4F46E5;
+      border: 2px solid #E5E7EB;
+    }
+
+    .loading {
+      text-align: center;
+      color: #6B7280;
+      padding: 20px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #E5E7EB;
+      border-top-color: #4F46E5;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .detail-item:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      font-size: 14px;
+      color: #6B7280;
+      font-weight: 500;
+    }
+
+    .detail-value {
+      font-size: 14px;
+      color: #1F2937;
+      font-weight: 600;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="icon">📱</div>
+        <h1>Información del Dispositivo</h1>
+        <p class="subtitle">Código de identificación</p>
+      </div>
+
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Generando huella digital...</p>
+      </div>
+
+      <div id="content" style="display: none;">
+        <div class="fingerprint-box">
+          <div class="fingerprint-label">Código del Dispositivo</div>
+          <div class="fingerprint-value" id="fingerprint">...</div>
+        </div>
+
+        <button id="copyBtn" onclick="copiarCodigo()">
+          <span id="copyIcon">📋</span>
+          <span id="copyText">Copiar código completo</span>
+        </button>
+
+        <button class="back-button" onclick="window.location.href='index.html'">
+          Volver al inicio
+        </button>
+
+        <div class="info-box">
+          <div class="info-label">Información adicional</div>
+          <div style="margin-top: 12px;">
+            <div class="detail-item">
+              <span class="detail-label">Sistema</span>
+              <span class="detail-value" id="sistema">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Navegador</span>
+              <span class="detail-value" id="navegador">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Resolución</span>
+              <span class="detail-value" id="resolucion">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Idioma</span>
+              <span class="detail-value" id="idioma">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Zona horaria</span>
+              <span class="detail-value" id="zona">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // DEVICE FINGERPRINTING
+    // ============================================
+    async function generarDeviceFingerprint() {
+      const componentes = [];
+
+      componentes.push(navigator.userAgent);
+      componentes.push(navigator.language);
+      componentes.push(Intl.DateTimeFormat().resolvedOptions().timeZone);
+      componentes.push(`${screen.width}x${screen.height}x${screen.colorDepth}`);
+      componentes.push(navigator.platform);
+      componentes.push(navigator.hardwareConcurrency || 0);
+      componentes.push(navigator.deviceMemory || 0);
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillText('Security', 2, 2);
+      componentes.push(canvas.toDataURL());
+
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl) {
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        if (debugInfo) {
+          componentes.push(gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+          componentes.push(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+        }
+      }
+
+      componentes.push(navigator.maxTouchPoints || 0);
+
+      const cadena = componentes.join('|||');
+      const hash = await simpleHash(cadena);
+      
+      return hash;
+    }
+
+    async function simpleHash(texto) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(texto);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+
+    function obtenerInfoDispositivo() {
+      const ua = navigator.userAgent;
+      
+      let sistema = 'Desconocido';
+      if (ua.includes('Android')) sistema = 'Android';
+      else if (ua.includes('iPhone') || ua.includes('iPad')) sistema = 'iOS';
+      else if (ua.includes('Windows')) sistema = 'Windows';
+      else if (ua.includes('Mac')) sistema = 'macOS';
+      else if (ua.includes('Linux')) sistema = 'Linux';
+
+      let navegador = 'Desconocido';
+      if (ua.includes('Chrome') && !ua.includes('Edg')) navegador = 'Chrome';
+      else if (ua.includes('Safari') && !ua.includes('Chrome')) navegador = 'Safari';
+      else if (ua.includes('Firefox')) navegador = 'Firefox';
+      else if (ua.includes('Edg')) navegador = 'Edge';
+
+      return {
+        sistema,
+        navegador,
+        resolucion: `${screen.width}x${screen.height}`,
+        idioma: navigator.language,
+        zona: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+    }
+
+    // ============================================
+    // FUNCIONES DE UI
+    // ============================================
+    let fingerprintGlobal = '';
+
+    async function inicializar() {
+      try {
+        const fingerprint = await generarDeviceFingerprint();
+        fingerprintGlobal = fingerprint;
+        
+        const info = obtenerInfoDispositivo();
+
+        document.getElementById('fingerprint').textContent = fingerprint;
+        document.getElementById('sistema').textContent = info.sistema;
+        document.getElementById('navegador').textContent = info.navegador;
+        document.getElementById('resolucion').textContent = info.resolucion;
+        document.getElementById('idioma').textContent = info.idioma;
+        document.getElementById('zona').textContent = info.zona;
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('loading').innerHTML = '<p style="color: #EF4444;">Error al generar el código</p>';
+      }
+    }
+
+    function copiarCodigo() {
+      navigator.clipboard.writeText(fingerprintGlobal).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const icon = document.getElementById('copyIcon');
+        const text = document.getElementById('copyText');
+        
+        btn.classList.add('copied');
+        icon.textContent = '✓';
+        text.textContent = '¡Código copiado!';
+        
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          icon.textContent = '📋';
+          text.textContent = 'Copiar código completo';
+        }, 2000);
+      }).catch(err => {
+        alert('Error al copiar: ' + err);
+      });
+    }
+
+    // Inicializar al cargar
+    inicializar();
+  </script>
+</body>
+</html>
