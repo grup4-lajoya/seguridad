@@ -74,6 +74,62 @@ function mostrarFormOTP(emailOfuscado) {
     'success'
   )
 }
+// Agregar esta función después de mostrarFormOTP
+function mostrarFormOTPConCodigo(resultado) {
+  elements.formIdentificador.classList.add('hidden')
+  elements.formOTP.classList.remove('hidden')
+  elements.codigo.value = ''
+  elements.codigo.focus()
+  iniciarTemporizador(CONFIG.APP.TIMEOUT_OTP)
+  
+  // Mostrar el código generado
+  mostrarAlerta(
+    `<div style="text-align: center;">
+      <strong>✅ Código de verificación generado</strong><br><br>
+      <div style="font-size: 32px; letter-spacing: 8px; color: #4F46E5; font-weight: bold; margin: 15px 0;">
+        ${resultado.codigo}
+      </div>
+      <div style="margin-top: 15px; font-size: 14px;">
+        Nombre: <strong>${resultado.usuario.nombre}</strong><br>
+        Unidad: <strong>${resultado.usuario.unidad || 'N/A'}</strong><br>
+        Puesto: <strong>${resultado.usuario.puesto_servicio || 'N/A'}</strong>
+      </div>
+      <div style="margin-top: 15px; color: #dc2626; font-size: 13px;">
+        ⏰ Este código expira en 10 minutos
+      </div>
+    </div>`,
+    'success'
+  )
+}
+
+// Modificar el event listener del formulario de identificador
+elements.formIdentificador.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  
+  const identificador = elements.identificador.value.trim()
+  
+  if (!identificador) {
+    mostrarAlerta('Por favor ingresa tu NSA o DNI', 'error')
+    return
+  }
+
+  mostrarSpinner(elements.btnSolicitarOTP, 'Generar código de verificación')
+  ocultarAlerta()
+
+  try {
+    const resultado = await solicitarOTP(identificador)
+    
+    state.identificadorActual = identificador
+    
+    // ✅ Usar la nueva función que muestra el código
+    mostrarFormOTPConCodigo(resultado)
+    
+  } catch (error) {
+    mostrarAlerta(error.message, 'error')
+  } finally {
+    ocultarSpinner(elements.btnSolicitarOTP)
+  }
+})
 
 function iniciarTemporizador(segundos) {
   state.tiempoRestante = segundos
