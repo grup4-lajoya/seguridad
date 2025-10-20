@@ -164,6 +164,7 @@ async function solicitarOTP(identificador) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
         'apikey': CONFIG.SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({ identificador }),
