@@ -61,7 +61,7 @@ function mostrarInfoUsuario(usuario) {
 function cerrarSesion() {
   if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
     limpiarSesion();
-    window.location.href = CONFIG.RUTAS.LOGIN;
+    window.location.href = 'index.html';  // ← DESCOMENTAR
   }
 }
 
