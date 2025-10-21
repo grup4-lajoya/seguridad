@@ -17,7 +17,6 @@ async function verificarAutenticacion() {
   console.log('🔍 Verificando autenticación...');
   
   const sesion = obtenerSesion();
-  console.log('📦 Sesión obtenida:', sesion);
   
   if (!sesion || !sesion.token) {
     console.log('❌ No hay sesión activa');
@@ -25,40 +24,21 @@ async function verificarAutenticacion() {
     return;
   }
 
-  try {
-    console.log('🔵 URL:', CONFIG.EDGE_FUNCTIONS.VERIFICAR_SESION)
-    
-    const response = await fetch(CONFIG.EDGE_FUNCTIONS.VERIFICAR_SESION, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sesion.token}`,
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-    });
-
-    console.log('📥 Response status:', response.status)
-
-    const data = await response.json();
-  console.log('📥 Respuesta completa:', data);
-
-    if (!data.valido) {
-      console.log('❌ Sesión inválida según servidor');
-      limpiarSesion();
-      window.location.href = 'index.html';
-      return;
-    }
-
-    // Mostrar información del usuario
-
-    console.log('✅ Sesión válida, mostrando info usuario...')
-    mostrarInfoUsuario(sesion.usuario);
-    console.log('✅ Usuario autenticado:', sesion.usuario.nombre);
-
-  } catch (error) {
-    console.error('❌ Error al verificar sesión:', error);
+  // Verificar que la sesión no haya expirado (24 horas)
+  const ahora = Date.now();
+  const tiempoTranscurrido = ahora - sesion.timestamp;
+  const VEINTICUATRO_HORAS = 24 * 60 * 60 * 1000;
+  
+  if (tiempoTranscurrido > VEINTICUATRO_HORAS) {
+    console.log('❌ Sesión expirada');
+    limpiarSesion();
     window.location.href = 'index.html';
+    return;
   }
+
+  // Mostrar usuario
+  mostrarInfoUsuario(sesion.usuario);
+  console.log('✅ Usuario autenticado:', sesion.usuario.nombre);
 }
 
 // Mostrar información del usuario en el header
