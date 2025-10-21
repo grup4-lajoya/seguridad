@@ -46,10 +46,13 @@ async function verificarAutenticacion() {
     const data = await response.json();
   console.log('📥 Respuesta completa:', data);
 
+     // AGREGAR ALERT AQUÍ
+  alert('RESPUESTA: ' + JSON.stringify(data) + '\n\nRevisa la consola antes de dar OK');
+
     if (!data.valido) {
       console.log('❌ Sesión inválida según servidor');
       limpiarSesion();
-      window.location.href = 'index.html';
+     // window.location.href = 'index.html';
       return;
     }
 
