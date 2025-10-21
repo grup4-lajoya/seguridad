@@ -348,6 +348,8 @@ elements.formIdentificador.addEventListener('submit', async (e) => {
 
 elements.formOTP.addEventListener('submit', async (e) => {
   e.preventDefault()
+
+  console.log('🔵 Formulario OTP enviado')
   
   const codigo = elements.codigo.value.trim()
   
@@ -360,21 +362,33 @@ elements.formOTP.addEventListener('submit', async (e) => {
   ocultarAlerta()
 
   try {
+   console.log('🔵 Verificando OTP...')
     const resultado = await verificarOTP(state.identificadorActual, codigo)
+    console.log('🔵 Resultado verificación:', resultado)
     
-    // Guardar sesión
+  // Guardar sesión
+    console.log('🔵 Guardando sesión...')
     guardarSesion(resultado.token, resultado.usuario)
-
-        // Verificar que se guardó correctamente
-    console.log('✅ Sesión guardada:', localStorage.getItem('sesion'))
     
-    // Mostrar mensaje de éxito
+    // Verificar que se guardó correctamente
+    const sesionGuardada = localStorage.getItem('sesion')
+    console.log('✅ Sesión guardada en localStorage:', sesionGuardada)
+
+      // Parsear y mostrar
+    if (sesionGuardada) {
+      const parsed = JSON.parse(sesionGuardada)
+      console.log('✅ Sesión parseada:', parsed)
+    }
+    
+   // Mostrar mensaje de éxito
     mostrarAlerta(`¡Bienvenido ${resultado.usuario.nombre}!`, 'success')
     
-    // Redirigir INMEDIATAMENTE sin setTimeout
+    // Redirigir
+    console.log('🔵 Redirigiendo a dashboard...')
     window.location.href = 'dashboard.html'
     
   } catch (error) {
+    console.error('❌ Error:', error)
     mostrarAlerta(error.message, 'error')
   } finally {
     ocultarSpinner(elements.btnVerificarOTP)
