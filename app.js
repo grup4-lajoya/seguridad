@@ -421,17 +421,17 @@ async function init() {
   // Generar device fingerprint
   state.deviceFingerprint = await generarDeviceFingerprint()
   console.log('📱 DEVICE FINGERPRINT:', state.deviceFingerprint)
-  console.log('👆 Copia este valor para registrar el dispositivo')
   
   // Verificar si ya hay una sesión activa
   const sesionValida = await verificarSesionActiva()
   
   if (sesionValida) {
     window.location.href = CONFIG.RUTAS.DASHBOARD
-  } else {
-    limpiarSesion()
-    mostrarFormIdentificador()
+    return; // ← AGREGAR RETURN AQUÍ
   }
+  
+  // Solo mostrar formulario si NO hay sesión válida
+  mostrarFormIdentificador()
 }
 
 // Ejecutar cuando el DOM esté listo
