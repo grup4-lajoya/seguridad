@@ -367,14 +367,15 @@ elements.formOTP.addEventListener('submit', async (e) => {
     
     // Guardar sesión
     guardarSesion(resultado.token, resultado.usuario)
+
+        // Verificar que se guardó correctamente
+    console.log('✅ Sesión guardada:', sessionStorage.getItem('sesion'))
     
     // Mostrar mensaje de éxito
     mostrarAlerta(`¡Bienvenido ${resultado.usuario.nombre}!`, 'success')
     
-// Redirigir al dashboard después de 1 segundo
-setTimeout(() => {
-  window.location.href = 'dashboard.html'  // Ruta directa
-}, 1000)
+    // Redirigir INMEDIATAMENTE sin setTimeout
+    window.location.href = 'dashboard.html'
     
   } catch (error) {
     mostrarAlerta(error.message, 'error')
