@@ -167,16 +167,13 @@ function guardarSesion(token, usuario) {
     timestamp: Date.now()
   };
   
-  // Guardar en sessionStorage
-  sessionStorage.setItem('sesion', JSON.stringify(sesionData));
-  
-  // También en memoria por compatibilidad
+  // Usar localStorage en lugar de sessionStorage
+  localStorage.setItem('sesion', JSON.stringify(sesionData));
   window.sessionData = sesionData;
 }
 
 function obtenerSesion() {
-  // Intentar desde sessionStorage primero
-  const sesionGuardada = sessionStorage.getItem('sesion');
+  const sesionGuardada = localStorage.getItem('sesion');
   if (sesionGuardada) {
     const sesion = JSON.parse(sesionGuardada);
     window.sessionData = sesion;
@@ -186,7 +183,7 @@ function obtenerSesion() {
 }
 
 function limpiarSesion() {
-  sessionStorage.removeItem('sesion');
+  localStorage.removeItem('sesion');
   window.sessionData = null;
 }
 
