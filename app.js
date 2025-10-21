@@ -384,7 +384,7 @@ elements.formOTP.addEventListener('submit', async (e) => {
     mostrarAlerta(`¡Bienvenido ${resultado.usuario.nombre}!`, 'success')
     
     // PAUSAR ANTES DE REDIRIGIR
-    alert('SESIÓN GUARDADA - Revisa la consola antes de dar OK')
+    //alert('SESIÓN GUARDADA - Revisa la consola antes de dar OK')
     
     // Redirigir
     console.log('🔵 Redirigiendo a dashboard...')
