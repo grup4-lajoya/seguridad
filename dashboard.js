@@ -16,9 +16,8 @@ async function verificarAutenticacion() {
   
 if (!sesion || !sesion.token) {
   console.log('❌ No hay sesión activa');
-  alert('NO HAY SESIÓN - Presiona OK para ver la consola');  // ← AGREGAR
-  // window.location.href = CONFIG.RUTAS.LOGIN;  // ← COMENTAR ESTA LÍNEA
-  return;
+window.location.href = 'index.html';  // ← DESCOMENTAR
+    return;
 }
 
   try {
@@ -37,7 +36,7 @@ if (!sesion || !sesion.token) {
     if (!data.valido) {
       console.log('❌ Sesión inválida o expirada');
       limpiarSesion();
-     // window.location.href = CONFIG.RUTAS.LOGIN;
+    window.location.href = 'index.html';  // ← DESCOMENTAR
       return;
     }
 
@@ -47,7 +46,7 @@ if (!sesion || !sesion.token) {
 
   } catch (error) {
     console.error('Error al verificar sesión:', error);
-   // window.location.href = CONFIG.RUTAS.LOGIN;
+     window.location.href = 'index.html';  // ← DESCOMENTAR
   }
 }
 
