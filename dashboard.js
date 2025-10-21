@@ -3,10 +3,15 @@
 // ============================================
 
 function obtenerSesion() {
-  const sesionGuardada = localStorage.getItem('sesion');  // Cambiar a localStorage
+  console.log('📂 Intentando obtener sesión...')
+  const sesionGuardada = localStorage.getItem('sesion');
+  console.log('📂 localStorage.getItem("sesion"):', sesionGuardada)
   if (sesionGuardada) {
-    return JSON.parse(sesionGuardada);
+    const parsed = JSON.parse(sesionGuardada)
+    console.log('📂 Sesión encontrada:', parsed)
+    return parsed;
   }
+  console.log('❌ No se encontró sesión en localStorage')
   return null;
 }
 
