@@ -3,13 +3,10 @@
 // ============================================
 
 function obtenerSesion() {
-  console.log('📂 Intentando obtener sesión...')
   const sesionGuardada = localStorage.getItem('sesion');
-  console.log('📂 localStorage.getItem("sesion"):', sesionGuardada)
-  if (sesionGuardada) {
+   if (sesionGuardada) {
     const parsed = JSON.parse(sesionGuardada)
-    console.log('📂 Sesión encontrada:', parsed)
-    return parsed;
+      return parsed;
   }
   console.log('❌ No se encontró sesión en localStorage')
   return null;
@@ -29,7 +26,6 @@ async function verificarAutenticacion() {
   }
 
   try {
-    console.log('🔵 Llamando a VERIFICAR_SESION...')
     console.log('🔵 URL:', CONFIG.EDGE_FUNCTIONS.VERIFICAR_SESION)
     
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.VERIFICAR_SESION, {
@@ -47,12 +43,12 @@ async function verificarAutenticacion() {
   console.log('📥 Respuesta completa:', data);
 
      // AGREGAR ALERT AQUÍ
-  alert('RESPUESTA: ' + JSON.stringify(data) + '\n\nRevisa la consola antes de dar OK');
+  //alert('RESPUESTA: ' + JSON.stringify(data) + '\n\nRevisa la consola antes de dar OK');
 
     if (!data.valido) {
       console.log('❌ Sesión inválida según servidor');
       limpiarSesion();
-     // window.location.href = 'index.html';
+      window.location.href = 'index.html';
       return;
     }
 
@@ -79,7 +75,7 @@ function mostrarInfoUsuario(usuario) {
 function cerrarSesion() {
   if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
     limpiarSesion();
-    window.location.href = 'index.html';  // ← DESCOMENTAR
+    window.location.href = 'index.html';  
   }
 }
 function limpiarSesion() {
