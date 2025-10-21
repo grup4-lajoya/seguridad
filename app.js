@@ -366,7 +366,7 @@ elements.formOTP.addEventListener('submit', async (e) => {
     guardarSesion(resultado.token, resultado.usuario)
 
         // Verificar que se guardó correctamente
-    console.log('✅ Sesión guardada:', sessionStorage.getItem('sesion'))
+    console.log('✅ Sesión guardada:', localStorage.getItem('sesion'))
     
     // Mostrar mensaje de éxito
     mostrarAlerta(`¡Bienvenido ${resultado.usuario.nombre}!`, 'success')
