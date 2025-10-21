@@ -156,20 +156,33 @@ function actualizarDisplay() {
 // ============================================
 // ALMACENAMIENTO SEGURO (EN MEMORIA)
 // ============================================
+// Cambiar la función guardarSesion en app.js
 function guardarSesion(token, usuario) {
-  window.sessionData = {
+  const sesionData = {
     token,
     usuario,
     timestamp: Date.now()
-  }
+  };
+  
+  // Guardar en sessionStorage
+  sessionStorage.setItem('sesion', JSON.stringify(sesionData));
+  
+  // También en memoria por compatibilidad
+  window.sessionData = sesionData;
 }
 
 function obtenerSesion() {
-  return window.sessionData || null
+  // Intentar desde sessionStorage primero
+  const sesionGuardada = sessionStorage.getItem('sesion');
+  if (sesionGuardada) {
+    window.sessionData = JSON.parse(sesionGuardada);
+  }
+  return window.sessionData || null;
 }
 
 function limpiarSesion() {
-  window.sessionData = null
+  sessionStorage.removeItem('sesion');
+  window.sessionData = null;
 }
 
 // ============================================
