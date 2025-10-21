@@ -371,10 +371,10 @@ elements.formOTP.addEventListener('submit', async (e) => {
     // Mostrar mensaje de éxito
     mostrarAlerta(`¡Bienvenido ${resultado.usuario.nombre}!`, 'success')
     
-    // Redirigir al dashboard después de 1 segundo
-    setTimeout(() => {
-      window.location.href = CONFIG.RUTAS.DASHBOARD
-    }, 1000)
+// Redirigir al dashboard después de 1 segundo
+setTimeout(() => {
+  window.location.href = 'dashboard.html'  // Ruta directa
+}, 1000)
     
   } catch (error) {
     mostrarAlerta(error.message, 'error')
