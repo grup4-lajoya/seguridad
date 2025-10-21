@@ -157,6 +157,9 @@ function actualizarDisplay() {
 // ALMACENAMIENTO SEGURO (EN MEMORIA)
 // ============================================
 // Cambiar la función guardarSesion en app.js
+// ============================================
+// ALMACENAMIENTO SEGURO (sessionStorage)
+// ============================================
 function guardarSesion(token, usuario) {
   const sesionData = {
     token,
@@ -175,7 +178,9 @@ function obtenerSesion() {
   // Intentar desde sessionStorage primero
   const sesionGuardada = sessionStorage.getItem('sesion');
   if (sesionGuardada) {
-    window.sessionData = JSON.parse(sesionGuardada);
+    const sesion = JSON.parse(sesionGuardada);
+    window.sessionData = sesion;
+    return sesion;
   }
   return window.sessionData || null;
 }
