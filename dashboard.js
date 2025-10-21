@@ -14,11 +14,12 @@ function obtenerSesion() {
 async function verificarAutenticacion() {
   const sesion = obtenerSesion();
   
-  if (!sesion || !sesion.token) {
-    console.log('❌ No hay sesión activa');
-    window.location.href = CONFIG.RUTAS.LOGIN;
-    return;
-  }
+if (!sesion || !sesion.token) {
+  console.log('❌ No hay sesión activa');
+  alert('NO HAY SESIÓN - Presiona OK para ver la consola');  // ← AGREGAR
+  // window.location.href = CONFIG.RUTAS.LOGIN;  // ← COMENTAR ESTA LÍNEA
+  return;
+}
 
   try {
     // Verificar que la sesión sigue siendo válida
@@ -36,7 +37,7 @@ async function verificarAutenticacion() {
     if (!data.valido) {
       console.log('❌ Sesión inválida o expirada');
       limpiarSesion();
-      window.location.href = CONFIG.RUTAS.LOGIN;
+     // window.location.href = CONFIG.RUTAS.LOGIN;
       return;
     }
 
@@ -46,7 +47,7 @@ async function verificarAutenticacion() {
 
   } catch (error) {
     console.error('Error al verificar sesión:', error);
-    window.location.href = CONFIG.RUTAS.LOGIN;
+   // window.location.href = CONFIG.RUTAS.LOGIN;
   }
 }
 
