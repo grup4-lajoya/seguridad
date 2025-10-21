@@ -17,16 +17,21 @@ function obtenerSesion() {
 
 // Verificar autenticación
 async function verificarAutenticacion() {
-  const sesion = obtenerSesion();
+  console.log('🔍 Verificando autenticación...');
   
-if (!sesion || !sesion.token) {
-  console.log('❌ No hay sesión activa');
-window.location.href = 'index.html';  // ← DESCOMENTAR
+  const sesion = obtenerSesion();
+  console.log('📦 Sesión obtenida:', sesion);
+  
+  if (!sesion || !sesion.token) {
+    console.log('❌ No hay sesión activa');
+    window.location.href = 'index.html';
     return;
-}
+  }
 
   try {
-    // Verificar que la sesión sigue siendo válida
+    console.log('🔵 Llamando a VERIFICAR_SESION...')
+    console.log('🔵 URL:', CONFIG.EDGE_FUNCTIONS.VERIFICAR_SESION)
+    
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.VERIFICAR_SESION, {
       method: 'POST',
       headers: {
@@ -36,22 +41,27 @@ window.location.href = 'index.html';  // ← DESCOMENTAR
       },
     });
 
+    console.log('📥 Response status:', response.status)
+
     const data = await response.json();
+  console.log('📥 Respuesta completa:', data);
 
     if (!data.valido) {
-      console.log('❌ Sesión inválida o expirada');
+      console.log('❌ Sesión inválida según servidor');
       limpiarSesion();
-    window.location.href = 'index.html';  // ← DESCOMENTAR
+      window.location.href = 'index.html';
       return;
     }
 
     // Mostrar información del usuario
+
+    console.log('✅ Sesión válida, mostrando info usuario...')
     mostrarInfoUsuario(sesion.usuario);
     console.log('✅ Usuario autenticado:', sesion.usuario.nombre);
 
   } catch (error) {
-    console.error('Error al verificar sesión:', error);
-     window.location.href = 'index.html';  // ← DESCOMENTAR
+    console.error('❌ Error al verificar sesión:', error);
+    window.location.href = 'index.html';
   }
 }
 
