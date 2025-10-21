@@ -388,7 +388,7 @@ elements.formOTP.addEventListener('submit', async (e) => {
     
     // Redirigir
     console.log('🔵 Redirigiendo a dashboard...')
-    // window.location.href = 'dashboard.html'  // COMENTAR TEMPORALMENTE
+    window.location.href = 'dashboard.html' 
     
   } catch (error) {
     console.error('❌ Error:', error)
