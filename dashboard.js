@@ -2,9 +2,12 @@
 // DASHBOARD - SISTEMA DE SEGURIDAD
 // ============================================
 
-// Obtener sesión guardada
 function obtenerSesion() {
-  return window.sessionData || null;
+  const sesionGuardada = sessionStorage.getItem('sesion');
+  if (sesionGuardada) {
+    return JSON.parse(sesionGuardada);
+  }
+  return null;
 }
 
 // Verificar autenticación
@@ -64,9 +67,9 @@ function cerrarSesion() {
 
 // Limpiar sesión
 function limpiarSesion() {
+  sessionStorage.removeItem('sesion');
   window.sessionData = null;
 }
-
 // ============================================
 // INICIALIZACIÓN
 // ============================================
