@@ -3,7 +3,7 @@
 // ============================================
 
 function obtenerSesion() {
-  const sesionGuardada = sessionStorage.getItem('sesion');
+  const sesionGuardada = localStorage.getItem('sesion');  // Cambiar a localStorage
   if (sesionGuardada) {
     return JSON.parse(sesionGuardada);
   }
@@ -64,10 +64,8 @@ function cerrarSesion() {
     window.location.href = 'index.html';  // ← DESCOMENTAR
   }
 }
-
-// Limpiar sesión
 function limpiarSesion() {
-  sessionStorage.removeItem('sesion');
+  localStorage.removeItem('sesion');  // Cambiar a localStorage
   window.sessionData = null;
 }
 // ============================================
