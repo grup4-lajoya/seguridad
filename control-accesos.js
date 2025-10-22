@@ -807,6 +807,15 @@ async function buscarCodigo(codigo) {
     ocultarAlerta();
     limpiarResultado();
     
+    // Si no se pasa código, tomarlo del input
+    if (!codigo) {
+      codigo = elements.inputCodigo.value.trim();
+    }
+    
+    if (!codigo) {
+      throw new Error('Por favor ingresa un código');
+    }
+    
     const deteccion = detectarTipoCodigo(codigo);
     
     console.log('🔍 Tipo detectado:', deteccion.tipo);
@@ -1300,8 +1309,8 @@ function iniciarEscanerCodigo() {
   
   const config = {
     fps: 10,
-    qrbox: { width: 300, height: 150 },  // Más ancho para códigos de barras
-    aspectRatio: 2.0,  // Formato horizontal
+    qrbox: { width: 280, height: 100 },  // Más ancho para códigos de barras
+    aspectRatio: 2.8,  // Formato horizontal
     disableFlip: false,
     experimentalFeatures: {
       useBarCodeDetectorIfSupported: true
@@ -1315,8 +1324,19 @@ function iniciarEscanerCodigo() {
   };
   
   html5QrCodeScanner.start(
-    { facingMode: "environment" },
-    config,
+  { 
+    facingMode: "environment",
+    advanced: [
+      { zoom: 2.0 }  // Zoom 2x por defecto
+    ]
+  },
+        // Después de html5QrCodeScanner.start(...)
+    const videoElement = document.querySelector('#reader video');
+    if (videoElement) {
+      videoElement.style.touchAction = 'pinch-zoom';
+      videoElement.style.userSelect = 'none';
+    }
+  config,
     (decodedText) => {
       console.log('📷 Código escaneado:', decodedText);
       elements.inputCodigo.value = decodedText;
