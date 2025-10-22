@@ -217,11 +217,19 @@ async function buscarCodigo(codigo) {
       throw new Error('Código no reconocido. Debe ser NSA (5-6 dígitos), DNI (8 dígitos) o Placa (5-7 caracteres)');
     }
     
-    // Llamar a Edge Function
+    // Obtener token de sesión
+    const sesion = localStorage.getItem('sesion');
+    if (!sesion) {
+      throw new Error('No hay sesión activa');
+    }
+    const token = JSON.parse(sesion).token;
+    
+    // Llamar a Edge Function con autorización
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,  // ← AGREGAR ESTA LÍNEA
         'apikey': CONFIG.SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
@@ -251,8 +259,6 @@ async function buscarCodigo(codigo) {
     ocultarSpinner();
   }
 }
-
-
 
 function registrarIngreso(personaId, origen) {
   console.log('📝 Registrar ingreso:', personaId, origen);
