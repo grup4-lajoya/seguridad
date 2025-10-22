@@ -305,7 +305,157 @@ async function registrarIngreso(personaId, origen) {
 
 function solicitarConductor(vehiculoId) {
   console.log('👤 Solicitar conductor para vehículo:', vehiculoId);
-  mostrarAlerta('Función de identificar conductor en desarrollo', 'info');
+  
+  // Guardar el ID del vehículo en una variable global temporal
+  window.vehiculoEnProceso = vehiculoId;
+  
+  // Cambiar la UI para solicitar conductor
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon">👤</div>
+        <div>
+          <h3>Identificar Conductor</h3>
+          <span class="badge badge-primary">Paso 2 de 2</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="input-group">
+          <label for="inputConductor">Escanea NSA o DNI del conductor:</label>
+          <input 
+            type="text" 
+            id="inputConductor" 
+            placeholder="Ej: 97778, 46025765"
+            autocomplete="off"
+            style="text-align: center; text-transform: uppercase;"
+          >
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="buscarConductor()">
+          🔍 Buscar Conductor
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="limpiarResultado()">
+          ✕ Cancelar
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Enfocar el input
+  setTimeout(() => {
+    document.getElementById('inputConductor').focus();
+    
+    // Permitir buscar con Enter
+    document.getElementById('inputConductor').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        buscarConductor();
+      }
+    });
+  }, 100);
+}
+async function buscarConductor() {
+  try {
+    const inputConductor = document.getElementById('inputConductor');
+    const codigo = inputConductor.value.trim();
+    
+    if (!codigo) {
+      mostrarAlerta('Por favor ingresa el código del conductor', 'error');
+      return;
+    }
+    
+    mostrarAlerta('Buscando conductor...', 'info');
+    
+    const deteccion = detectarTipoCodigo(codigo);
+    
+    if (deteccion.tipo === 'placa') {
+      throw new Error('Debes ingresar un NSA o DNI, no una placa');
+    }
+    
+    if (deteccion.tipo === 'desconocido') {
+      throw new Error('Código no reconocido');
+    }
+    
+    // Buscar conductor
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: deteccion.valor,
+        tipo: deteccion.tipo
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error('Conductor no encontrado');
+    }
+    
+    if (resultado.data.tipo_resultado !== 'persona') {
+      throw new Error('El código debe ser de una persona');
+    }
+    
+    // Registrar ingreso con vehículo
+    await registrarIngresoConVehiculo(resultado.data);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+
+async function registrarIngresoConVehiculo(conductor) {
+  try {
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const idUsuario = sesion.usuario.id;
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        id_persona: conductor.id,
+        tipo_persona: conductor.origen,
+        id_vehiculo: window.vehiculoEnProceso,
+        ingreso_con_vehiculo: true,
+        id_usuario: idUsuario
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error);
+    }
+    
+    const mensaje = resultado.accion === 'ingreso' 
+      ? `✅ Ingreso registrado: ${conductor.nombre} con vehículo`
+      : `✅ Salida registrada: ${conductor.nombre} con vehículo`;
+    
+    mostrarAlerta(mensaje, 'success');
+    
+    // Limpiar después de 2 segundos
+    setTimeout(() => {
+      limpiarResultado();
+      elements.inputCodigo.value = '';
+      elements.inputCodigo.focus();
+      window.vehiculoEnProceso = null;
+    }, 2500);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
 }
 
 // ============================================
