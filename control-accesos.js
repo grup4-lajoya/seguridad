@@ -428,22 +428,23 @@ function mostrarVehiculo(data) {
       </div>
 
       <div class="resultado-actions">
-        ${esSalida ? `
-          <button class="btn" style="background: #EF4444; color: white;" onclick="registrarSalidaVehiculo('${data.id}', ${JSON.stringify(data.ingreso_activo)})">
-            🚪 Registrar Salida
-          </button>
-        ` : `
-          <button class="btn btn-primary" onclick="solicitarConductor('${data.id}')">
-            👤 ¿Quién conduce?
-          </button>
-        `}
+    ${esSalida ? `
+  <button class="btn" style="background: #EF4444; color: white;" 
+          onclick="registrarSalidaVehiculo('${data.id}', '${data.ingreso_activo.id_persona}', '${data.ingreso_activo.tipo_persona}')">
+    🚪 Registrar Salida
+  </button>
+` : `
+  <button class="btn btn-primary" onclick="solicitarConductor('${data.id}')">
+    👤 ¿Quién conduce?
+  </button>
+`}
       </div>
     </div>
   `;
   
   elements.resultado.classList.remove('hidden');
 }
-async function registrarSalidaVehiculo(vehiculoId, ingresoActivo) {
+async function registrarSalidaVehiculo(vehiculoId, idPersona, tipoPersona) {
   try {
     mostrarAlerta('Registrando salida...', 'info');
     
@@ -458,8 +459,8 @@ async function registrarSalidaVehiculo(vehiculoId, ingresoActivo) {
         'apikey': CONFIG.SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
-        id_persona: ingresoActivo.id_persona,
-        tipo_persona: ingresoActivo.tipo_persona,
+        id_persona: idPersona,
+        tipo_persona: tipoPersona,
         id_vehiculo: vehiculoId,
         ingreso_con_vehiculo: true,
         id_usuario: idUsuario
