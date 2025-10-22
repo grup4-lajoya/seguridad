@@ -149,22 +149,22 @@ function mostrarPersona(data) {
 
 ${esSalida ? `
   <!-- Es SALIDA -->
-  ${tieneVehiculos ? `
-    <div class="alert alert-info" style="margin: 16px 0;">
-      <span>🚗</span>
-      <div>
-        <strong>¿Sale con su vehículo?</strong>
-      </div>
+ ${tieneVehiculos ? `
+  <div class="alert alert-info" style="margin: 16px 0;">
+    <span>🚗</span>
+    <div>
+      <strong>¿Sale con vehículo?</strong>
     </div>
-    
-    <div class="resultado-actions">
-      <button class="btn" style="background: #10B981; color: white;" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
-        ✅ Sí, con vehículo
-      </button>
-      <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
-        🚶 No, sin vehículo
-      </button>
-    </div>
+  </div>
+  
+  <div class="resultado-actions">
+    <button class="btn" style="background: #10B981; color: white;" onclick='solicitarPlacaSalida(${JSON.stringify(data)})'>
+      ✅ Sí, con vehículo
+    </button>
+    <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+      🚶 No, sin vehículo
+    </button>
+  </div>
   ` : `
     <div class="resultado-actions">
       <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
@@ -946,6 +946,127 @@ async function registrarIngresoConVehiculo(conductor) {
       elements.inputCodigo.value = '';
       elements.inputCodigo.focus();
       window.vehiculoEnProceso = null;
+    }, 2500);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+function solicitarPlacaSalida(persona) {
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon">🚗</div>
+        <div>
+          <h3>Escanear Vehículo de Salida</h3>
+          <span class="badge badge-primary">${persona.nombre}</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="input-group">
+          <label for="inputPlacaSalida">Escanea la placa del vehículo:</label>
+          <input 
+            type="text" 
+            id="inputPlacaSalida" 
+            placeholder="Ej: ABC-123"
+            autocomplete="off"
+            style="text-align: center; text-transform: uppercase;"
+          >
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="procesarSalidaConVehiculo()">
+          🔍 Buscar y Registrar Salida
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarPersona(${JSON.stringify(persona)})'>
+          ← Volver
+        </button>
+      </div>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    document.getElementById('inputPlacaSalida').focus();
+    
+    document.getElementById('inputPlacaSalida').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        procesarSalidaConVehiculo();
+      }
+    });
+  }, 100);
+  
+  // Guardar persona en variable global
+  window.personaSalida = persona;
+}
+
+async function procesarSalidaConVehiculo() {
+  try {
+    const inputPlaca = document.getElementById('inputPlacaSalida');
+    const placa = inputPlaca.value.trim().toUpperCase();
+    
+    if (!placa) {
+      mostrarAlerta('Por favor ingresa la placa del vehículo', 'error');
+      return;
+    }
+    
+    mostrarAlerta('Buscando vehículo...', 'info');
+    
+    // Buscar el vehículo
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: placa,
+        tipo: 'placa'
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error('Vehículo no encontrado');
+    }
+    
+    // Registrar salida con vehículo
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const idUsuario = sesion.usuario.id;
+    
+    const responseSalida = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        id_persona: window.personaSalida.id,
+        tipo_persona: window.personaSalida.origen,
+        id_vehiculo: resultado.data.id,
+        ingreso_con_vehiculo: true,
+        id_usuario: idUsuario
+      }),
+    });
+    
+    const resultadoSalida = await responseSalida.json();
+    
+    if (!resultadoSalida.success) {
+      throw new Error(resultadoSalida.error);
+    }
+    
+    mostrarAlerta(`✅ Salida registrada: ${window.personaSalida.nombre} con vehículo ${placa}`, 'success');
+    
+    setTimeout(() => {
+      limpiarResultado();
+      elements.inputCodigo.value = '';
+      elements.inputCodigo.focus();
+      window.personaSalida = null;
     }, 2500);
     
   } catch (error) {
