@@ -80,16 +80,40 @@ function ocultarSpinner() {
 function mostrarPersona(data) {
   const esForaneo = data.origen === 'foraneo';
   const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
+  const tieneIngresoActivo = data.ingreso_activo !== null;
+  const esSalida = tieneIngresoActivo;
+  
+  // Si es salida, mostrar info del ingreso
+  let infoIngreso = '';
+  if (esSalida && data.ingreso_activo) {
+    const fechaIngreso = new Date(data.ingreso_activo.fecha_ingreso);
+    const horaIngreso = fechaIngreso.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    
+    infoIngreso = `
+      <div class="alert alert-info" style="margin: 16px 0;">
+        <span>ℹ️</span>
+        <div>
+          <strong>Ingresó a las ${horaIngreso}</strong>
+          ${data.ingreso_activo.ingreso_con_vehiculo ? '<br>Con vehículo' : '<br>Sin vehículo'}
+        </div>
+      </div>
+    `;
+  }
   
   elements.resultado.innerHTML = `
     <div class="resultado-card">
       <div class="resultado-header">
-        <div class="resultado-icon">👤</div>
+        <div class="resultado-icon">${esSalida ? '🚪' : '👤'}</div>
         <div>
           <h3>${data.nombre}</h3>
-          <span class="badge badge-${esForaneo ? 'warning' : 'primary'}">
-            ${esForaneo ? 'Personal Foráneo' : 'Personal'}
-          </span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span class="badge badge-${esForaneo ? 'warning' : 'primary'}">
+              ${esForaneo ? 'Personal Foráneo' : 'Personal'}
+            </span>
+            <span class="badge" style="background: ${esSalida ? '#EF4444' : '#10B981'}; color: white;">
+              ${esSalida ? '📤 SALIDA' : '📥 INGRESO'}
+            </span>
+          </div>
         </div>
       </div>
       
@@ -113,15 +137,25 @@ function mostrarPersona(data) {
           </div>
         ` : ''}
         
-        ${tieneVehiculos ? `
+        ${tieneVehiculos && !esSalida ? `
           <div class="info-row">
             <span class="info-label">Vehículos registrados:</span>
             <span class="info-value">${data.vehiculos.length}</span>
           </div>
         ` : ''}
+        
+        ${infoIngreso}
       </div>
 
-      ${tieneVehiculos ? `
+      ${esSalida ? `
+        <!-- Es SALIDA - Botón simple -->
+        <div class="resultado-actions">
+          <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+            🚪 Registrar Salida
+          </button>
+        </div>
+      ` : tieneVehiculos ? `
+        <!-- Es INGRESO con vehículos - Preguntar -->
         <div class="alert alert-info" style="margin: 16px 0;">
           <span>🚗</span>
           <div>
@@ -138,6 +172,7 @@ function mostrarPersona(data) {
           </button>
         </div>
       ` : `
+        <!-- Es INGRESO sin vehículos - Botón simple -->
         <div class="resultado-actions">
           <button class="btn btn-success" onclick="registrarIngreso('${data.id}', '${data.origen}')">
             ✅ Registrar Ingreso
