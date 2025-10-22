@@ -146,22 +146,29 @@
         <p class="subtitle">Sistema de registro de ingresos y salidas</p>
       </div>
 
-      <div class="info-box">
-        <p>
-          <strong>📱 Instrucciones:</strong><br>
-          Presiona el botón "ESCANEAR" y apunta la cámara hacia:
-        </p>
-        <ul style="margin: 12px 0 0 20px; color: #1E40AF; font-size: 14px; line-height: 1.8;">
-          <li>DNI o código de barras de la persona</li>
-          <li>Placa del vehículo</li>
-        </ul>
-        <p style="margin-top: 12px; font-size: 13px;">
-          El sistema detectará automáticamente qué estás escaneando.
-        </p>
+      <!-- Alerta -->
+      <div id="alerta" class="hidden"></div>
+
+      <!-- Input manual (simulando escaneo) -->
+      <div class="input-group">
+        <label for="inputCodigo">Ingresa NSA, DNI o Placa:</label>
+        <input 
+          type="text" 
+          id="inputCodigo" 
+          placeholder="Ej: 97778, 46025765, ABC123"
+          autocomplete="off"
+        >
       </div>
 
-      <button class="scan-button" onclick="iniciarEscaneo()">
-        📷 ESCANEAR
+      <button id="btnBuscar" class="scan-button">
+        🔍 Buscar
+      </button>
+
+      <!-- Resultado -->
+      <div id="resultado" class="hidden"></div>
+
+      <button id="btnLimpiar" class="back-button" style="margin-top: 16px;">
+        🔄 Limpiar
       </button>
 
       <button class="back-button" onclick="volverDashboard()">
