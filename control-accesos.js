@@ -1028,11 +1028,16 @@ async function procesarSalidaConVehiculo() {
       }),
     });
     
-    const resultado = await response.json();
-    
-    if (!resultado.success) {
-      throw new Error('Vehículo no encontrado');
-    }
+   if (!resultado.success) {
+  throw new Error('Vehículo no encontrado');
+}
+
+// ⚠️ VALIDAR QUE EL VEHÍCULO ESTÉ DENTRO
+if (!resultado.data.ingreso_activo) {
+  throw new Error(`El vehículo ${placa} no está dentro. Debe ingresar primero.`);
+}
+
+// Registrar salida con vehículo
     
     // Registrar salida con vehículo
     const sesion = JSON.parse(localStorage.getItem('sesion'));
