@@ -260,9 +260,109 @@ function mostrarVehiculosPersona(persona) {
         <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarPersona(${JSON.stringify(persona)})'>
           ← Volver
         </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick='escanearOtraPlaca(${JSON.stringify(persona)})'>
+  🔍 Escanear otra placa
+</button>
       </div>
     </div>
   `;
+}
+function escanearOtraPlaca(persona) {
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon">🚗</div>
+        <div>
+          <h3>Escanear Otro Vehículo</h3>
+          <span class="badge badge-primary">${persona.nombre}</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <div>Escanea la placa del vehículo con el que ingresa</div>
+        </div>
+        
+        <div class="input-group">
+          <label for="inputOtraPlaca">Placa del vehículo:</label>
+          <input 
+            type="text" 
+            id="inputOtraPlaca" 
+            placeholder="Ej: XYZ-789"
+            autocomplete="off"
+            style="text-align: center; text-transform: uppercase;"
+          >
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="procesarIngresoConOtraPlaca()">
+          ✅ Registrar Ingreso
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarVehiculosPersona(${JSON.stringify(persona)})'>
+          ← Volver
+        </button>
+      </div>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    document.getElementById('inputOtraPlaca').focus();
+    
+    document.getElementById('inputOtraPlaca').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        procesarIngresoConOtraPlaca();
+      }
+    });
+  }, 100);
+  
+  window.personaIngreso = persona;
+}
+
+async function procesarIngresoConOtraPlaca() {
+  try {
+    const inputPlaca = document.getElementById('inputOtraPlaca');
+    const placa = inputPlaca.value.trim().toUpperCase();
+    
+    if (!placa) {
+      mostrarAlerta('Por favor ingresa la placa', 'error');
+      return;
+    }
+    
+    mostrarAlerta('Buscando vehículo...', 'info');
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: placa,
+        tipo: 'placa'
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(`Vehículo con placa ${placa} no encontrado en el sistema`);
+    }
+    
+    if (resultado.data.tipo_resultado !== 'vehiculo') {
+      throw new Error('El código no corresponde a un vehículo');
+    }
+    
+    // Registrar ingreso con ese vehículo
+    window.vehiculoEnProceso = resultado.data.id;
+    await registrarIngresoConVehiculo(window.personaIngreso);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
 }
 
 function seleccionarVehiculo(persona, vehiculo) {
