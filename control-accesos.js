@@ -1256,3 +1256,190 @@ async function crearVehiculoTemporal(placa, persona) {
   console.log('✅ Vehículo temporal creado:', resultado.data);
   return resultado.data.id;
 }
+let html5QrCodeScanner = null;
+
+// ============================================
+// ESCANEO DE CÓDIGOS DE BARRAS (DNI/NSA)
+// ============================================
+function iniciarEscanerCodigo() {
+  elements.inputCodigo.style.display = 'none';
+  
+  if (!document.getElementById('reader')) {
+    const readerDiv = document.createElement('div');
+    readerDiv.id = 'reader';
+    readerDiv.style.width = '100%';
+    readerDiv.style.maxWidth = '500px';
+    readerDiv.style.margin = '20px auto';
+    elements.inputCodigo.parentElement.insertBefore(readerDiv, elements.inputCodigo.nextSibling);
+    
+    // Botón para cerrar escáner
+    const btnCerrar = document.createElement('button');
+    btnCerrar.textContent = '✕ Cerrar Cámara';
+    btnCerrar.className = 'btn';
+    btnCerrar.style.background = '#EF4444';
+    btnCerrar.style.color = 'white';
+    btnCerrar.style.marginTop = '10px';
+    btnCerrar.onclick = detenerEscanerCodigo;
+    readerDiv.appendChild(btnCerrar);
+  }
+  
+  document.getElementById('reader').style.display = 'block';
+  
+  html5QrCodeScanner = new Html5Qrcode("reader");
+  
+  const config = {
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8
+    ]
+  };
+  
+  html5QrCodeScanner.start(
+    { facingMode: "environment" },
+    config,
+    (decodedText) => {
+      console.log('📷 Código escaneado:', decodedText);
+      elements.inputCodigo.value = decodedText;
+      detenerEscanerCodigo();
+      buscarCodigo();
+    }
+  ).catch((err) => {
+    console.error('❌ Error al iniciar escáner:', err);
+    mostrarAlerta('No se pudo acceder a la cámara', 'error');
+    detenerEscanerCodigo();
+  });
+}
+
+function detenerEscanerCodigo() {
+  if (html5QrCodeScanner) {
+    html5QrCodeScanner.stop().then(() => {
+      const reader = document.getElementById('reader');
+      if (reader) reader.style.display = 'none';
+      elements.inputCodigo.style.display = 'block';
+      html5QrCodeScanner = null;
+    }).catch(() => {
+      html5QrCodeScanner = null;
+    });
+  }
+}
+
+// ============================================
+// ESCANEO OCR PARA PLACAS
+// ============================================
+function iniciarEscanerPlaca(callback) {
+  const container = document.createElement('div');
+  container.id = 'ocr-container';
+  container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;';
+  
+  container.innerHTML = `
+    <div style="color: white; text-align: center; padding: 20px;">
+      <h3>📷 Escanear Placa de Vehículo</h3>
+      <p>Toma una foto clara de la placa</p>
+    </div>
+    
+    <input type="file" id="placaInput" accept="image/*" capture="environment" style="display: none;">
+    
+    <button onclick="document.getElementById('placaInput').click()" class="btn btn-success" style="margin: 10px;">
+      📸 Tomar Foto
+    </button>
+    
+    <button onclick="cerrarEscanerPlaca()" class="btn" style="background: #EF4444; color: white;">
+      ✕ Cancelar
+    </button>
+    
+    <div id="ocr-preview" style="margin-top: 20px; max-width: 90%; max-height: 300px; overflow: hidden;"></div>
+    <div id="ocr-status" style="color: white; margin-top: 10px;"></div>
+  `;
+  
+  document.body.appendChild(container);
+  
+  document.getElementById('placaInput').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Mostrar preview
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '300px';
+    document.getElementById('ocr-preview').innerHTML = '';
+    document.getElementById('ocr-preview').appendChild(img);
+    
+    // Procesar OCR
+    document.getElementById('ocr-status').textContent = '⏳ Procesando imagen...';
+    
+    try {
+      const result = await Tesseract.recognize(file, 'eng', {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            document.getElementById('ocr-status').textContent = `⏳ Procesando: ${Math.round(m.progress * 100)}%`;
+          }
+        }
+      });
+      
+      // Extraer texto que parece placa (letras y números)
+      const texto = result.data.text.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      console.log('📝 Texto detectado:', texto);
+      
+      mostrarConfirmacionPlaca(texto, callback);
+      
+    } catch (error) {
+      console.error('❌ Error OCR:', error);
+      mostrarAlerta('Error al procesar la imagen', 'error');
+      cerrarEscanerPlaca();
+    }
+  };
+  
+  window.cerrarEscanerPlaca = function() {
+    const cont = document.getElementById('ocr-container');
+    if (cont) cont.remove();
+  };
+}
+
+function mostrarConfirmacionPlaca(textoDetectado, callback) {
+  const container = document.getElementById('ocr-container');
+  container.innerHTML = `
+    <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;">
+      <h3 style="margin-bottom: 20px;">✅ Placa Detectada</h3>
+      
+      <div style="margin: 20px 0;">
+        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Confirma o corrige la placa:</label>
+        <input 
+          type="text" 
+          id="placaConfirmada" 
+          value="${textoDetectado}"
+          style="width: 100%; padding: 12px; font-size: 18px; text-align: center; text-transform: uppercase; border: 2px solid #3B82F6; border-radius: 8px;"
+          autocomplete="off"
+        >
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button onclick="confirmarPlaca()" class="btn btn-success" style="flex: 1;">
+          ✅ Confirmar
+        </button>
+        <button onclick="cerrarEscanerPlaca()" class="btn" style="flex: 1; background: #6B7280; color: white;">
+          ✕ Cancelar
+        </button>
+      </div>
+    </div>
+  `;
+  
+  window.confirmarPlaca = function() {
+    const placa = document.getElementById('placaConfirmada').value.trim().toUpperCase();
+    if (placa) {
+      cerrarEscanerPlaca();
+      callback(placa);
+    } else {
+      mostrarAlerta('Por favor ingresa una placa', 'error');
+    }
+  };
+  
+  setTimeout(() => {
+    document.getElementById('placaConfirmada').focus();
+    document.getElementById('placaConfirmada').select();
+  }, 100);
+}
