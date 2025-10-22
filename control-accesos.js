@@ -252,9 +252,55 @@ async function buscarCodigo(codigo) {
   }
 }
 
-function registrarIngreso(personaId, origen) {
-  console.log('📝 Registrar ingreso:', personaId, origen);
-  mostrarAlerta('Función de registro en desarrollo', 'info');
+async function registrarIngreso(personaId, origen) {
+  try {
+    console.log('📝 Registrando ingreso/salida:', personaId, origen);
+    
+    // Obtener ID del usuario actual
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const idUsuario = sesion.usuario.id;
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        id_persona: personaId,
+        tipo_persona: origen,
+        id_vehiculo: null,
+        ingreso_con_vehiculo: false,
+        id_usuario: idUsuario
+      }),
+    });
+    
+    const resultado = await response.json();
+    console.log('📦 Resultado:', resultado);
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error);
+    }
+    
+    // Mostrar mensaje según la acción
+    const mensaje = resultado.accion === 'ingreso' 
+      ? '✅ Ingreso registrado correctamente'
+      : '✅ Salida registrada correctamente';
+    
+    mostrarAlerta(mensaje, 'success');
+    
+    // Limpiar después de 2 segundos
+    setTimeout(() => {
+      limpiarResultado();
+      elements.inputCodigo.value = '';
+      elements.inputCodigo.focus();
+    }, 2000);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
 }
 
 function solicitarConductor(vehiculoId) {
