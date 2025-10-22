@@ -1344,19 +1344,13 @@ function iniciarEscanerCodigo() {
     ]
   };
   
-  html5QrCodeScanner.start(
+html5QrCodeScanner.start(
   { 
     facingMode: "environment",
     advanced: [
-      { zoom: 2.0 }  // Zoom 2x por defecto
+      { zoom: 2.0 }
     ]
   },
-        // Después de html5QrCodeScanner.start(...)
-    const videoElement = document.querySelector('#reader video');
-    if (videoElement) {
-      videoElement.style.touchAction = 'pinch-zoom';
-      videoElement.style.userSelect = 'none';
-    }
   config,
     (decodedText) => {
       console.log('📷 Código escaneado:', decodedText);
