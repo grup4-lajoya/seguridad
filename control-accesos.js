@@ -1231,34 +1231,28 @@ verificarAuth();
 elements.inputCodigo.focus();
 
 async function crearVehiculoTemporal(placa, persona) {
-  const response = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/vehiculo_seguridad`, {
+  const sesion = JSON.parse(localStorage.getItem('sesion'));
+  
+  const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_VEHICULO_TEMPORAL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-      'apikey': CONFIG.SUPABASE_ANON_KEY,
-      'Prefer': 'return=representation'
+      'apikey': CONFIG.SUPABASE_ANON_KEY
     },
     body: JSON.stringify({
-      id_propietario: persona.id,
-      tipo_propietario: persona.origen === 'foraneo' ? 'personal_foraneo' : 'personal',
       placa: placa,
-      tipo_vehiculo: 'AUTO',
-      tipo_propiedad: 'PRESTADO',
-      marca: 'TEMPORAL',
-      modelo: 'TEMPORAL',
-      color: 'N/A',
-      temporal: true,
-      activo: true
+      id_propietario: persona.id,
+      tipo_propietario: persona.origen === 'foraneo' ? 'personal_foraneo' : 'personal'
     })
   });
   
-  const data = await response.json();
+  const resultado = await response.json();
   
-  if (!response.ok) {
-    throw new Error('Error al registrar vehículo temporal');
+  if (!resultado.success) {
+    throw new Error(resultado.error || 'Error al registrar vehículo temporal');
   }
   
-  console.log('✅ Vehículo temporal creado:', data);
-  return data[0].id;
+  console.log('✅ Vehículo temporal creado:', resultado.data);
+  return resultado.data.id;
 }
