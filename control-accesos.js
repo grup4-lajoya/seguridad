@@ -347,7 +347,6 @@ async function registrarIngresoConVehiculoSeleccionado(persona, vehiculo) {
     mostrarAlerta(error.message, 'error');
   }
 }
-
 function mostrarVehiculo(data) {
   const documentosVencidos = verificarDocumentosVencidos(data);
   const tieneDocumentosVencidos = documentosVencidos.length > 0;
@@ -365,7 +364,7 @@ function mostrarVehiculo(data) {
         <span>ℹ️</span>
         <div>
           <strong>Ingresó a las ${horaIngreso}</strong><br>
-          Registrar salida del vehículo
+          Identificar quién conduce para registrar salida
         </div>
       </div>
     `;
@@ -428,22 +427,188 @@ function mostrarVehiculo(data) {
       </div>
 
       <div class="resultado-actions">
-    ${esSalida ? `
-  <button class="btn" style="background: #EF4444; color: white;" 
-          onclick="registrarSalidaVehiculo('${data.id}', '${data.ingreso_activo.id_persona}', '${data.ingreso_activo.tipo_persona}')">
-    🚪 Registrar Salida
-  </button>
-` : `
-  <button class="btn btn-primary" onclick="solicitarConductor('${data.id}')">
-    👤 ¿Quién conduce?
-  </button>
-`}
+        ${esSalida ? `
+          <button class="btn" style="background: #EF4444; color: white;" 
+                  onclick="solicitarConductorSalida('${data.id}', '${data.ingreso_activo.id_persona}', '${data.ingreso_activo.tipo_persona}')">
+            👤 ¿Quién conduce?
+          </button>
+        ` : `
+          <button class="btn btn-primary" onclick="solicitarConductor('${data.id}')">
+            👤 ¿Quién conduce?
+          </button>
+        `}
       </div>
     </div>
   `;
   
   elements.resultado.classList.remove('hidden');
 }
+
+function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPersonaIngreso) {
+  console.log('👤 Solicitar conductor para SALIDA del vehículo:', vehiculoId);
+  
+  // Guardar datos del vehículo y persona que ingresó
+  window.vehiculoEnProcesoSalida = {
+    vehiculoId,
+    idPersonaIngreso,
+    tipoPersonaIngreso
+  };
+  
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon">👤</div>
+        <div>
+          <h3>Identificar Conductor</h3>
+          <span class="badge" style="background: #EF4444; color: white;">SALIDA</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-info" style="margin-bottom: 16px;">
+          <span>ℹ️</span>
+          <div>
+            <strong>Puede ser la misma persona que ingresó o una diferente</strong>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="inputConductorSalida">Escanea NSA o DNI del conductor:</label>
+          <input 
+            type="text" 
+            id="inputConductorSalida" 
+            placeholder="Ej: 97778, 46025765"
+            autocomplete="off"
+            style="text-align: center; text-transform: uppercase;"
+          >
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn" style="background: #EF4444; color: white;" onclick="buscarConductorSalida()">
+          🔍 Buscar Conductor
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="limpiarResultado()">
+          ✕ Cancelar
+        </button>
+      </div>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    document.getElementById('inputConductorSalida').focus();
+    document.getElementById('inputConductorSalida').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        buscarConductorSalida();
+      }
+    });
+  }, 100);
+}
+
+async function buscarConductorSalida() {
+  try {
+    const inputConductor = document.getElementById('inputConductorSalida');
+    const codigo = inputConductor.value.trim();
+    
+    if (!codigo) {
+      mostrarAlerta('Por favor ingresa el código del conductor', 'error');
+      return;
+    }
+    
+    mostrarAlerta('Buscando conductor...', 'info');
+    
+    const deteccion = detectarTipoCodigo(codigo);
+    
+    if (deteccion.tipo === 'placa') {
+      throw new Error('Debes ingresar un NSA o DNI, no una placa');
+    }
+    
+    if (deteccion.tipo === 'desconocido') {
+      throw new Error('Código no reconocido');
+    }
+    
+    // Buscar conductor
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: deteccion.valor,
+        tipo: deteccion.tipo
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error('Conductor no encontrado');
+    }
+    
+    if (resultado.data.tipo_resultado !== 'persona') {
+      throw new Error('El código debe ser de una persona');
+    }
+    
+    const conductor = resultado.data;
+    
+    // Verificar si el conductor está dentro
+    if (!conductor.ingreso_activo) {
+      throw new Error(`${conductor.nombre} no tiene ingreso registrado. No puede salir con el vehículo.`);
+    }
+    
+    // Registrar salida
+    await registrarSalidaConVehiculo(conductor);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+
+async function registrarSalidaConVehiculo(conductor) {
+  try {
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const idUsuario = sesion.usuario.id;
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        id_persona: conductor.id,
+        tipo_persona: conductor.origen,
+        id_vehiculo: window.vehiculoEnProcesoSalida.vehiculoId,
+        ingreso_con_vehiculo: true,
+        id_usuario: idUsuario
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error);
+    }
+    
+    mostrarAlerta(`✅ Salida registrada: ${conductor.nombre} con vehículo`, 'success');
+    
+    setTimeout(() => {
+      limpiarResultado();
+      elements.inputCodigo.value = '';
+      elements.inputCodigo.focus();
+      window.vehiculoEnProcesoSalida = null;
+    }, 2500);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+
 async function registrarSalidaVehiculo(vehiculoId, idPersona, tipoPersona) {
   try {
     mostrarAlerta('Registrando salida...', 'info');
