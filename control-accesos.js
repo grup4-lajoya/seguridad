@@ -206,6 +206,7 @@ async function buscarCodigo(codigo) {
   try {
     mostrarSpinner();
     ocultarAlerta();
+    limpiarResultado();
     
     const deteccion = detectarTipoCodigo(codigo);
     
@@ -216,9 +217,32 @@ async function buscarCodigo(codigo) {
       throw new Error('Código no reconocido. Debe ser NSA (5-6 dígitos), DNI (8 dígitos) o Placa (5-7 caracteres)');
     }
     
-    // TODO: Llamar a Edge Function buscar-codigo
-    // Por ahora, simulamos respuesta
-    mostrarAlerta(`Tipo detectado: ${deteccion.tipo.toUpperCase()}. Próximamente buscaremos en la base de datos.`, 'info');
+    // Llamar a Edge Function
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: deteccion.valor,
+        tipo: deteccion.tipo
+      }),
+    });
+    
+    const resultado = await response.json();
+    console.log('📦 Resultado:', resultado);
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error || 'No se encontró el código');
+    }
+    
+    // Mostrar resultado según el tipo
+    if (resultado.data.tipo_resultado === 'persona') {
+      mostrarPersona(resultado.data);
+    } else if (resultado.data.tipo_resultado === 'vehiculo') {
+      mostrarVehiculo(resultado.data);
+    }
     
   } catch (error) {
     console.error('❌ Error:', error);
@@ -227,6 +251,8 @@ async function buscarCodigo(codigo) {
     ocultarSpinner();
   }
 }
+
+
 
 function registrarIngreso(personaId, origen) {
   console.log('📝 Registrar ingreso:', personaId, origen);
