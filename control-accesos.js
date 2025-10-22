@@ -79,6 +79,7 @@ function ocultarSpinner() {
 // ============================================
 function mostrarPersona(data) {
   const esForaneo = data.origen === 'foraneo';
+  const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
   
   elements.resultado.innerHTML = `
     <div class="resultado-card">
@@ -111,17 +112,146 @@ function mostrarPersona(data) {
             <span class="info-value">${data.origen_nombre || 'N/A'}</span>
           </div>
         ` : ''}
+        
+        ${tieneVehiculos ? `
+          <div class="info-row">
+            <span class="info-label">Vehículos registrados:</span>
+            <span class="info-value">${data.vehiculos.length}</span>
+          </div>
+        ` : ''}
       </div>
 
-      <div class="resultado-actions">
-        <button class="btn btn-success" onclick="registrarIngreso('${data.id}', '${data.origen}')">
-          ✅ Registrar Ingreso
-        </button>
-      </div>
+      ${tieneVehiculos ? `
+        <div class="alert alert-info" style="margin: 16px 0;">
+          <span>🚗</span>
+          <div>
+            <strong>¿Ingresó con su vehículo?</strong>
+          </div>
+        </div>
+        
+        <div class="resultado-actions">
+          <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
+            ✅ Sí, con vehículo
+          </button>
+          <button class="btn btn-primary" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+            🚶 No, sin vehículo
+          </button>
+        </div>
+      ` : `
+        <div class="resultado-actions">
+          <button class="btn btn-success" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+            ✅ Registrar Ingreso
+          </button>
+        </div>
+      `}
     </div>
   `;
   
   elements.resultado.classList.remove('hidden');
+}
+function mostrarVehiculosPersona(persona) {
+  const vehiculosHTML = persona.vehiculos.map(v => `
+    <div class="vehiculo-item" style="padding: 12px; border: 2px solid #E5E7EB; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;"
+         onclick='seleccionarVehiculo(${JSON.stringify(persona)}, ${JSON.stringify(v)})'
+         onmouseover="this.style.borderColor='#4F46E5'; this.style.background='#F0F9FF'"
+         onmouseout="this.style.borderColor='#E5E7EB'; this.style.background='white'">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 600; font-size: 16px; color: #111827;">
+            🚗 ${v.placa}
+          </div>
+          <div style="font-size: 14px; color: #6B7280;">
+            ${v.marca || ''} ${v.modelo || ''} ${v.color ? '- ' + v.color : ''}
+          </div>
+        </div>
+        <div style="font-size: 24px;">→</div>
+      </div>
+    </div>
+  `).join('');
+  
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon">🚗</div>
+        <div>
+          <h3>Selecciona el vehículo</h3>
+          <span class="badge badge-primary">${persona.nombre}</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div style="margin-bottom: 12px; color: #6B7280; font-size: 14px;">
+          Selecciona con qué vehículo ingresó:
+        </div>
+        ${vehiculosHTML}
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarPersona(${JSON.stringify(persona)})'>
+          ← Volver
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function seleccionarVehiculo(persona, vehiculo) {
+  // Verificar documentos vencidos
+  const documentosVencidos = verificarDocumentosVencidos(vehiculo);
+  
+  if (documentosVencidos.length > 0) {
+    mostrarAlerta(`⚠ Advertencia: ${documentosVencidos.join(', ')}`, 'warning');
+  }
+  
+  // Registrar ingreso con vehículo
+  registrarIngresoConVehiculoSeleccionado(persona, vehiculo);
+}
+
+async function registrarIngresoConVehiculoSeleccionado(persona, vehiculo) {
+  try {
+    mostrarAlerta('Registrando ingreso con vehículo...', 'info');
+    
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const idUsuario = sesion.usuario.id;
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        id_persona: persona.id,
+        tipo_persona: persona.origen,
+        id_vehiculo: vehiculo.id,
+        ingreso_con_vehiculo: true,
+        id_usuario: idUsuario
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error);
+    }
+    
+    const mensaje = resultado.accion === 'ingreso' 
+      ? `✅ Ingreso registrado: ${persona.nombre} con vehículo ${vehiculo.placa}`
+      : `✅ Salida registrada: ${persona.nombre} con vehículo ${vehiculo.placa}`;
+    
+    mostrarAlerta(mensaje, 'success');
+    
+    setTimeout(() => {
+      limpiarResultado();
+      elements.inputCodigo.value = '';
+      elements.inputCodigo.focus();
+    }, 2500);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
 }
 
 function mostrarVehiculo(data) {
