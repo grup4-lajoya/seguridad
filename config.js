@@ -10,12 +10,13 @@ const CONFIG = {
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnYml4Z3ZpZHhlYW94eHB5aXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxOTU3NzMsImV4cCI6MjA3NTc3MTc3M30.NQ5n_vFnHDp8eNjV3I9vRujfWDWWGAywgyICpqX0OKQ',
   
   // URLs de las Edge Functions
-  EDGE_FUNCTIONS: {
-    SOLICITAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/solicitar-otp',
-    VERIFICAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-otp',
-    VERIFICAR_SESION: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-sesion',
-    BUSCAR_CODIGO: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/buscar-codigo',
-  },
+EDGE_FUNCTIONS: {
+  SOLICITAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/solicitar-otp',
+  VERIFICAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-otp',
+  VERIFICAR_SESION: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-sesion',
+  BUSCAR_CODIGO: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/buscar-codigo',
+  REGISTRAR_INGRESO_SALIDA: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/registrar-ingreso-salida', // ← AGREGAR
+},
   
   // Configuración de la aplicación
   APP: {
