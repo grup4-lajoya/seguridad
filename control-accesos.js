@@ -147,13 +147,31 @@ function mostrarPersona(data) {
         ${infoIngreso}
       </div>
 
-      ${esSalida ? `
-        <!-- Es SALIDA - Botón simple -->
-        <div class="resultado-actions">
-          <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
-            🚪 Registrar Salida
-          </button>
-        </div>
+${esSalida ? `
+  <!-- Es SALIDA -->
+  ${tieneVehiculos ? `
+    <div class="alert alert-info" style="margin: 16px 0;">
+      <span>🚗</span>
+      <div>
+        <strong>¿Sale con su vehículo?</strong>
+      </div>
+    </div>
+    
+    <div class="resultado-actions">
+      <button class="btn" style="background: #10B981; color: white;" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
+        ✅ Sí, con vehículo
+      </button>
+      <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+        🚶 No, sin vehículo
+      </button>
+    </div>
+  ` : `
+    <div class="resultado-actions">
+      <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+        🚪 Registrar Salida
+      </button>
+    </div>
+  `}
       ` : tieneVehiculos ? `
         <!-- Es INGRESO con vehículos - Preguntar -->
         <div class="alert alert-info" style="margin: 16px 0;">
