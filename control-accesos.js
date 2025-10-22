@@ -1,16 +1,37 @@
-// ============================================
-// CONTROL DE ACCESOS - SISTEMA DE SEGURIDAD
-// ============================================
+// Elementos del DOM (se inicializan después de cargar el DOM)
+let elements = {};
 
-// Elementos del DOM
-const elements = {
-  inputCodigo: document.getElementById('inputCodigo'),
-  btnBuscar: document.getElementById('btnBuscar'),
-  btnLimpiar: document.getElementById('btnLimpiar'),
-  resultado: document.getElementById('resultado'),
-  alerta: document.getElementById('alerta')
-};
+// Esperar a que el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  elements = {
+    inputCodigo: document.getElementById('inputCodigo'),
+    btnBuscar: document.getElementById('btnBuscar'),
+    btnLimpiar: document.getElementById('btnLimpiar'),
+    resultado: document.getElementById('resultado'),
+    alerta: document.getElementById('alerta')
+  };
+  
+  console.log('✅ Elementos inicializados:', elements);
+  
+  // Event listeners
+  if (elements.btnBuscar) {
+    elements.btnBuscar.addEventListener('click', () => buscarCodigo());
+  }
+  
+  if (elements.inputCodigo) {
+    elements.inputCodigo.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') buscarCodigo();
+    });
+  }
+  
+  if (elements.btnLimpiar) {
+    elements.btnLimpiar.addEventListener('click', limpiarResultado);
+  }
+});
 
+// ============================================
+// FUNCIONES DE DETECCIÓN
+// ============================================
 // ============================================
 // FUNCIONES DE DETECCIÓN
 // ============================================
