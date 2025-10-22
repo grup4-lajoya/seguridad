@@ -879,12 +879,7 @@ async function buscarConductor() {
     if (resultado.data.tipo_resultado !== 'persona') {
       throw new Error('El código debe ser de una persona');
     }
-    
-    // ⚠️ NUEVA VALIDACIÓN: Verificar si el conductor ya está dentro
-    if (resultado.data.ingreso_activo !== null) {
-      throw new Error(`${resultado.data.nombre} ya tiene un ingreso activo. No puede salir con el vehículo.`);
-    }
-    
+       
     // Registrar ingreso con vehículo
     await registrarIngresoConVehiculo(resultado.data);
     
