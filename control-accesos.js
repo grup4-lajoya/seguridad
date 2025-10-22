@@ -1028,13 +1028,17 @@ async function procesarSalidaConVehiculo() {
       }),
     });
     
-   if (!resultado.success) {
-  throw new Error('Vehículo no encontrado');
+if (!resultado.success) {
+  throw new Error(`Vehículo con placa ${placa} no encontrado en el sistema`);
+}
+
+if (resultado.data.tipo_resultado !== 'vehiculo') {
+  throw new Error('El código ingresado no corresponde a un vehículo');
 }
 
 // ⚠️ VALIDAR QUE EL VEHÍCULO ESTÉ DENTRO
 if (!resultado.data.ingreso_activo) {
-  throw new Error(`El vehículo ${placa} no está dentro. Debe ingresar primero.`);
+  throw new Error(`El vehículo ${placa} no está dentro de las instalaciones. Debe ingresar primero.`);
 }
 
 // Registrar salida con vehículo
