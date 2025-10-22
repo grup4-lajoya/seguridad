@@ -831,6 +831,9 @@ function solicitarConductor(vehiculoId) {
     });
   }, 100);
 }
+// Busca esta función en tu archivo control-accesos.js (línea 834)
+// Reemplaza desde la línea 856 hasta la línea 881
+
 async function buscarConductor() {
   try {
     const inputConductor = document.getElementById('inputConductor');
@@ -875,6 +878,11 @@ async function buscarConductor() {
     
     if (resultado.data.tipo_resultado !== 'persona') {
       throw new Error('El código debe ser de una persona');
+    }
+    
+    // ⚠️ NUEVA VALIDACIÓN: Verificar si el conductor ya está dentro
+    if (resultado.data.ingreso_activo !== null) {
+      throw new Error(`${resultado.data.nombre} ya tiene un ingreso activo. No puede salir con el vehículo.`);
     }
     
     // Registrar ingreso con vehículo
