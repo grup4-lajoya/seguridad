@@ -1027,6 +1027,7 @@ async function procesarSalidaConVehiculo() {
         tipo: 'placa'
       }),
     });
+    const resultado = await response.json(); 
     
 if (!resultado.success) {
   throw new Error(`Vehículo con placa ${placa} no encontrado en el sistema`);
