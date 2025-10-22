@@ -1271,6 +1271,17 @@ function iniciarEscanerCodigo() {
     readerDiv.style.maxWidth = '500px';
     readerDiv.style.margin = '20px auto';
     elements.inputCodigo.parentElement.insertBefore(readerDiv, elements.inputCodigo.nextSibling);
+
+          // Instrucciones
+      const instrucciones = document.createElement('div');
+      instrucciones.style.cssText = 'background: #3B82F6; color: white; padding: 15px; border-radius: 8px; margin: 10px; text-align: center;';
+      instrucciones.innerHTML = `
+        <strong>💡 Consejos:</strong><br>
+        • Acerca/aleja el celular hasta que enfoque<br>
+        • Mantén el código bien iluminado<br>
+        • Coloca el código horizontalmente
+      `;
+      readerDiv.appendChild(instrucciones);
     
     // Botón para cerrar escáner
     const btnCerrar = document.createElement('button');
@@ -1289,7 +1300,12 @@ function iniciarEscanerCodigo() {
   
   const config = {
     fps: 10,
-    qrbox: { width: 250, height: 250 },
+    qrbox: { width: 300, height: 150 },  // Más ancho para códigos de barras
+    aspectRatio: 2.0,  // Formato horizontal
+    disableFlip: false,
+    experimentalFeatures: {
+      useBarCodeDetectorIfSupported: true
+    },
     formatsToSupport: [
       Html5QrcodeSupportedFormats.CODE_128,
       Html5QrcodeSupportedFormats.CODE_39,
