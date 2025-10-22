@@ -14,6 +14,7 @@ const CONFIG = {
     SOLICITAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/solicitar-otp',
     VERIFICAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-otp',
     VERIFICAR_SESION: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-sesion',
+    BUSCAR_CODIGO: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/buscar-codigo',
   },
   
   // Configuración de la aplicación
