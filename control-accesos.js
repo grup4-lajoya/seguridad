@@ -344,20 +344,26 @@ async function procesarIngresoConOtraPlaca() {
         tipo: 'placa'
       }),
     });
-    
-    const resultado = await response.json();
-    
-    if (!resultado.success) {
-      throw new Error(`Vehículo con placa ${placa} no encontrado en el sistema`);
-    }
-    
-    if (resultado.data.tipo_resultado !== 'vehiculo') {
-      throw new Error('El código no corresponde a un vehículo');
-    }
-    
-    // Registrar ingreso con ese vehículo
-    window.vehiculoEnProceso = resultado.data.id;
-    await registrarIngresoConVehiculo(window.personaIngreso);
+const resultado = await response.json();
+
+// Si el vehículo NO existe, crearlo como temporal
+if (!resultado.success) {
+  mostrarAlerta('Vehículo no encontrado, registrando como temporal...', 'info');
+  
+  const idVehiculoTemporal = await crearVehiculoTemporal(placa, window.personaIngreso);
+  window.vehiculoEnProceso = idVehiculoTemporal;
+  await registrarIngresoConVehiculo(window.personaIngreso);
+  return;
+}
+
+if (resultado.data.tipo_resultado !== 'vehiculo') {
+  throw new Error('El código no corresponde a un vehículo');
+}
+
+// Registrar ingreso con ese vehículo
+window.vehiculoEnProceso = resultado.data.id;
+await registrarIngresoConVehiculo(window.personaIngreso);    
+
     
   } catch (error) {
     console.error('❌ Error:', error);
@@ -1220,7 +1226,39 @@ function verificarAuth() {
     window.location.href = 'index.html';
   }
 }
-
 // Inicializar
 verificarAuth();
 elements.inputCodigo.focus();
+
+async function crearVehiculoTemporal(placa, persona) {
+  const response = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/vehiculo_seguridad`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+      'apikey': CONFIG.SUPABASE_ANON_KEY,
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({
+      id_propietario: persona.id,
+      tipo_propietario: persona.origen === 'foraneo' ? 'personal_foraneo' : 'personal',
+      placa: placa,
+      tipo_vehiculo: 'AUTO',
+      tipo_propiedad: 'PRESTADO',
+      marca: 'TEMPORAL',
+      modelo: 'TEMPORAL',
+      color: 'N/A',
+      temporal: true,
+      activo: true
+    })
+  });
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error('Error al registrar vehículo temporal');
+  }
+  
+  console.log('✅ Vehículo temporal creado:', data);
+  return data[0].id;
+}
