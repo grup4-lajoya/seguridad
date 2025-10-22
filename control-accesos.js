@@ -185,24 +185,37 @@ function mostrarPersona(data) {
   elements.resultado.classList.remove('hidden');
 }
 function mostrarVehiculosPersona(persona) {
-  const vehiculosHTML = persona.vehiculos.map(v => `
-    <div class="vehiculo-item" style="padding: 12px; border: 2px solid #E5E7EB; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;"
-         onclick='seleccionarVehiculo(${JSON.stringify(persona)}, ${JSON.stringify(v)})'
-         onmouseover="this.style.borderColor='#4F46E5'; this.style.background='#F0F9FF'"
-         onmouseout="this.style.borderColor='#E5E7EB'; this.style.background='white'">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <div style="font-weight: 600; font-size: 16px; color: #111827;">
-            🚗 ${v.placa}
+  const vehiculosHTML = persona.vehiculos.map(v => {
+    const docsVencidos = verificarDocumentosVencidos(v);
+    const tieneVencidos = docsVencidos.length > 0;
+    
+    return `
+      <div class="vehiculo-item" 
+           style="padding: 12px; border: 2px solid ${tieneVencidos ? '#F59E0B' : '#E5E7EB'}; 
+                  background: ${tieneVencidos ? '#FEF3C7' : 'white'};
+                  border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;"
+           onclick='seleccionarVehiculo(${JSON.stringify(persona)}, ${JSON.stringify(v)})'
+           onmouseover="this.style.borderColor='${tieneVencidos ? '#D97706' : '#4F46E5'}'; this.style.background='${tieneVencidos ? '#FDE68A' : '#F0F9FF'}'"
+           onmouseout="this.style.borderColor='${tieneVencidos ? '#F59E0B' : '#E5E7EB'}'; this.style.background='${tieneVencidos ? '#FEF3C7' : 'white'}'">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 16px; color: #111827;">
+              ${tieneVencidos ? '⚠️' : '🚗'} ${v.placa}
+            </div>
+            <div style="font-size: 14px; color: #6B7280;">
+              ${v.marca || ''} ${v.modelo || ''} ${v.color ? '- ' + v.color : ''}
+            </div>
+            ${tieneVencidos ? `
+              <div style="font-size: 12px; color: #92400E; margin-top: 4px;">
+                ${docsVencidos.join(', ')}
+              </div>
+            ` : ''}
           </div>
-          <div style="font-size: 14px; color: #6B7280;">
-            ${v.marca || ''} ${v.modelo || ''} ${v.color ? '- ' + v.color : ''}
-          </div>
+          <div style="font-size: 24px;">→</div>
         </div>
-        <div style="font-size: 24px;">→</div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
   
   elements.resultado.innerHTML = `
     <div class="resultado-card">
@@ -219,6 +232,10 @@ function mostrarVehiculosPersona(persona) {
           Selecciona con qué vehículo ingresó:
         </div>
         ${vehiculosHTML}
+        
+        <div style="margin-top: 12px; padding: 12px; background: #F0F9FF; border-radius: 8px; font-size: 13px; color: #1E40AF;">
+          ℹ️ Los vehículos con documentos vencidos pueden ingresar pero deben regularizarse
+        </div>
       </div>
 
       <div class="resultado-actions">
@@ -231,14 +248,56 @@ function mostrarVehiculosPersona(persona) {
 }
 
 function seleccionarVehiculo(persona, vehiculo) {
-  // Verificar documentos vencidos
   const documentosVencidos = verificarDocumentosVencidos(vehiculo);
+  const tieneVencidos = documentosVencidos.length > 0;
   
-  if (documentosVencidos.length > 0) {
-    mostrarAlerta(`⚠ Advertencia: ${documentosVencidos.join(', ')}`, 'warning');
+  if (tieneVencidos) {
+    // Mostrar confirmación con advertencia
+    elements.resultado.innerHTML = `
+      <div class="resultado-card">
+        <div class="resultado-header">
+          <div class="resultado-icon">⚠️</div>
+          <div>
+            <h3>Confirmar ingreso</h3>
+            <span class="badge" style="background: #F59E0B; color: white;">Documentos vencidos</span>
+          </div>
+        </div>
+        
+        <div class="resultado-body">
+          <div class="alert alert-warning">
+            <span style="font-size: 24px;">⚠️</span>
+            <div>
+              <strong>Vehículo ${vehiculo.placa} tiene documentos vencidos:</strong><br><br>
+              ${documentosVencidos.map(doc => `• ${doc}`).join('<br>')}<br><br>
+              <strong>¿Deseas registrar el ingreso de todos modos?</strong>
+            </div>
+          </div>
+          
+          <div style="padding: 12px; background: #F3F4F6; border-radius: 8px; margin-top: 12px;">
+            <div style="font-size: 14px; color: #4B5563;">
+              <strong>👤 Conductor:</strong> ${persona.nombre}<br>
+              <strong>🚗 Vehículo:</strong> ${vehiculo.placa}
+            </div>
+          </div>
+        </div>
+
+        <div class="resultado-actions">
+          <button class="btn btn-success" onclick='confirmarIngresoConVehiculo(${JSON.stringify(persona)}, ${JSON.stringify(vehiculo)})'>
+            ✅ Sí, registrar ingreso
+          </button>
+          <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarVehiculosPersona(${JSON.stringify(persona)})'>
+            ← Volver
+          </button>
+        </div>
+      </div>
+    `;
+  } else {
+    // Sin documentos vencidos, registrar directamente
+    confirmarIngresoConVehiculo(persona, vehiculo);
   }
-  
-  // Registrar ingreso con vehículo
+}
+
+function confirmarIngresoConVehiculo(persona, vehiculo) {
   registrarIngresoConVehiculoSeleccionado(persona, vehiculo);
 }
 
@@ -291,6 +350,7 @@ async function registrarIngresoConVehiculoSeleccionado(persona, vehiculo) {
 
 function mostrarVehiculo(data) {
   const documentosVencidos = verificarDocumentosVencidos(data);
+  const tieneDocumentosVencidos = documentosVencidos.length > 0;
   
   elements.resultado.innerHTML = `
     <div class="resultado-card">
@@ -320,15 +380,25 @@ function mostrarVehiculo(data) {
           <span class="info-value">${data.propietario_nombre || 'N/A'}</span>
         </div>
         
-        ${documentosVencidos.length > 0 ? `
+        ${tieneDocumentosVencidos ? `
           <div class="alert alert-warning" style="margin-top: 16px;">
-            <span>⚠</span>
+            <span style="font-size: 24px;">⚠️</span>
             <div>
               <strong>Documentos vencidos:</strong><br>
-              ${documentosVencidos.join('<br>')}
+              ${documentosVencidos.map(doc => `• ${doc}`).join('<br>')}
+              <div style="margin-top: 8px; font-size: 13px;">
+                ⚠️ Se permite el ingreso pero debe regularizar
+              </div>
             </div>
           </div>
-        ` : ''}
+        ` : `
+          <div class="alert alert-success" style="margin-top: 16px;">
+            <span>✅</span>
+            <div>
+              <strong>Documentos al día</strong>
+            </div>
+          </div>
+        `}
       </div>
 
       <div class="resultado-actions">
