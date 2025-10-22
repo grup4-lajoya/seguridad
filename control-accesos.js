@@ -351,14 +351,38 @@ async function registrarIngresoConVehiculoSeleccionado(persona, vehiculo) {
 function mostrarVehiculo(data) {
   const documentosVencidos = verificarDocumentosVencidos(data);
   const tieneDocumentosVencidos = documentosVencidos.length > 0;
+  const tieneIngresoActivo = data.ingreso_activo !== null;
+  const esSalida = tieneIngresoActivo;
+  
+  // Si es salida, obtener info del conductor
+  let infoConductor = '';
+  if (esSalida && data.ingreso_activo) {
+    const fechaIngreso = new Date(data.ingreso_activo.fecha_ingreso);
+    const horaIngreso = fechaIngreso.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    
+    infoConductor = `
+      <div class="alert alert-info" style="margin-top: 16px;">
+        <span>ℹ️</span>
+        <div>
+          <strong>Ingresó a las ${horaIngreso}</strong><br>
+          Registrar salida del vehículo
+        </div>
+      </div>
+    `;
+  }
   
   elements.resultado.innerHTML = `
     <div class="resultado-card">
       <div class="resultado-header">
-        <div class="resultado-icon">🚗</div>
+        <div class="resultado-icon">${esSalida ? '🚪' : '🚗'}</div>
         <div>
           <h3>${data.placa}</h3>
-          <span class="badge badge-primary">Vehículo</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span class="badge badge-primary">Vehículo</span>
+            <span class="badge" style="background: ${esSalida ? '#EF4444' : '#10B981'}; color: white;">
+              ${esSalida ? '📤 SALIDA' : '📥 INGRESO'}
+            </span>
+          </div>
         </div>
       </div>
       
@@ -380,7 +404,7 @@ function mostrarVehiculo(data) {
           <span class="info-value">${data.propietario_nombre || 'N/A'}</span>
         </div>
         
-        ${tieneDocumentosVencidos ? `
+        ${!esSalida && tieneDocumentosVencidos ? `
           <div class="alert alert-warning" style="margin-top: 16px;">
             <span style="font-size: 24px;">⚠️</span>
             <div>
@@ -391,25 +415,75 @@ function mostrarVehiculo(data) {
               </div>
             </div>
           </div>
-        ` : `
+        ` : !esSalida ? `
           <div class="alert alert-success" style="margin-top: 16px;">
             <span>✅</span>
             <div>
               <strong>Documentos al día</strong>
             </div>
           </div>
-        `}
+        ` : ''}
+        
+        ${infoConductor}
       </div>
 
       <div class="resultado-actions">
-        <button class="btn btn-primary" onclick="solicitarConductor('${data.id}')">
-          👤 ¿Quién conduce?
-        </button>
+        ${esSalida ? `
+          <button class="btn" style="background: #EF4444; color: white;" onclick="registrarSalidaVehiculo('${data.id}', ${JSON.stringify(data.ingreso_activo)})">
+            🚪 Registrar Salida
+          </button>
+        ` : `
+          <button class="btn btn-primary" onclick="solicitarConductor('${data.id}')">
+            👤 ¿Quién conduce?
+          </button>
+        `}
       </div>
     </div>
   `;
   
   elements.resultado.classList.remove('hidden');
+}
+async function registrarSalidaVehiculo(vehiculoId, ingresoActivo) {
+  try {
+    mostrarAlerta('Registrando salida...', 'info');
+    
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const idUsuario = sesion.usuario.id;
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        id_persona: ingresoActivo.id_persona,
+        tipo_persona: ingresoActivo.tipo_persona,
+        id_vehiculo: vehiculoId,
+        ingreso_con_vehiculo: true,
+        id_usuario: idUsuario
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error);
+    }
+    
+    mostrarAlerta('✅ Salida registrada correctamente', 'success');
+    
+    setTimeout(() => {
+      limpiarResultado();
+      elements.inputCodigo.value = '';
+      elements.inputCodigo.focus();
+    }, 2000);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
 }
 
 function verificarDocumentosVencidos(vehiculo) {
