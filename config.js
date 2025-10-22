@@ -15,7 +15,8 @@ EDGE_FUNCTIONS: {
   VERIFICAR_OTP: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-otp',
   VERIFICAR_SESION: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/verificar-sesion',
   BUSCAR_CODIGO: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/buscar-codigo',
-  REGISTRAR_INGRESO_SALIDA: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/registrar-ingreso-salida', // ← AGREGAR
+  REGISTRAR_INGRESO_SALIDA: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/registrar-ingreso-salida',
+  REGISTRAR_VEHICULO_TEMPORAL: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/registrar-vehiculo-temporal',
 },
   
   // Configuración de la aplicación
