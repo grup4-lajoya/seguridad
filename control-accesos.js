@@ -94,7 +94,7 @@ function mostrarPersona(data) {
         <span>ℹ️</span>
         <div>
           <strong>Ingresó a las ${horaIngreso}</strong>
-          ${data.ingreso_activo.ingreso_con_vehiculo ? '<br>Con vehículo' : '<br>Sin vehículo'}
+         ${data.ingreso_activo.ingreso_original_con_vehiculo ? '<br>Con vehículo' : '<br>Sin vehículo'}
         </div>
       </div>
     `;
