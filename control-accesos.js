@@ -1,4 +1,5 @@
 // Elementos del DOM (se inicializan después de cargar el DOM)
+let html5QrCodeScanner = null;
 let elements = {};
 
 // Esperar a que el DOM esté listo
@@ -1286,7 +1287,6 @@ async function crearVehiculoTemporal(placa, persona) {
   console.log('✅ Vehículo temporal creado:', resultado.data);
   return resultado.data.id;
 }
-let html5QrCodeScanner = null;
 
 // ============================================
 // ESCANEO DE CÓDIGOS DE BARRAS (DNI/NSA)
