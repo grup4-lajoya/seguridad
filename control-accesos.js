@@ -28,11 +28,22 @@ document.addEventListener('DOMContentLoaded', function() {
   if (elements.btnLimpiar) {
     elements.btnLimpiar.addEventListener('click', limpiarResultado);
   }
+    const btnEscanearDNI = document.getElementById('btnEscanearDNI');
+  if (btnEscanearDNI) {
+    btnEscanearDNI.addEventListener('click', iniciarEscanerCodigo);
+  }
+  
+  const btnEscanearPlaca = document.getElementById('btnEscanearPlaca');
+  if (btnEscanearPlaca) {
+    btnEscanearPlaca.addEventListener('click', () => {
+      iniciarEscanerPlaca((placa) => { 
+        elements.inputCodigo.value = placa; 
+        buscarCodigo(); 
+      });
+    });
+  }
 });
 
-// ============================================
-// FUNCIONES DE DETECCIÓN
-// ============================================
 // ============================================
 // FUNCIONES DE DETECCIÓN
 // ============================================
