@@ -1356,24 +1356,19 @@ function iniciarEscanerCodigo() {
   };
   
 html5QrCodeScanner.start(
-  { 
-    facingMode: "environment",
-    advanced: [
-      { zoom: 2.0 }
-    ]
-  },
+  { facingMode: "environment" },
   config,
-    (decodedText) => {
-      console.log('📷 Código escaneado:', decodedText);
-      elements.inputCodigo.value = decodedText;
-      detenerEscanerCodigo();
-      buscarCodigo();
-    }
-  ).catch((err) => {
-    console.error('❌ Error al iniciar escáner:', err);
-    mostrarAlerta('No se pudo acceder a la cámara', 'error');
+  (decodedText) => {
+    console.log('📷 Código escaneado:', decodedText);
+    elements.inputCodigo.value = decodedText;
     detenerEscanerCodigo();
-  });
+    buscarCodigo();
+  }
+).catch((err) => {
+  console.error('❌ Error al iniciar escáner:', err);
+  mostrarAlerta('No se pudo acceder a la cámara', 'error');
+  detenerEscanerCodigo();
+});
 }
 
 function detenerEscanerCodigo() {
