@@ -1308,29 +1308,26 @@ function iniciarEscanerCodigo() {
   if (!document.getElementById('reader')) {
     const readerDiv = document.createElement('div');
     readerDiv.id = 'reader';
-    readerDiv.style.width = '100%';
-    readerDiv.style.maxWidth = '500px';
-    readerDiv.style.margin = '20px auto';
+    readerDiv.style.cssText = 'width: 100%; max-width: 500px; margin: 20px auto; position: relative;';
     elements.inputCodigo.parentElement.insertBefore(readerDiv, elements.inputCodigo.nextSibling);
 
-          // Instrucciones
-      const instrucciones = document.createElement('div');
-      instrucciones.style.cssText = 'background: #3B82F6; color: white; padding: 15px; border-radius: 8px; margin: 10px; text-align: center;';
-      instrucciones.innerHTML = `
-        <strong>💡 Consejos:</strong><br>
-        • Acerca/aleja el celular hasta que enfoque<br>
-        • Mantén el código bien iluminado<br>
-        • Coloca el código horizontalmente
-      `;
-      readerDiv.appendChild(instrucciones);
+    // Instrucciones mejoradas
+    const instrucciones = document.createElement('div');
+    instrucciones.style.cssText = 'background: #3B82F6; color: white; padding: 15px; border-radius: 8px; margin: 10px 0; text-align: center;';
+    instrucciones.innerHTML = `
+      <strong>💡 Consejos:</strong><br>
+      • Acerca/aleja el celular hasta que enfoque<br>
+      • Mantén buena iluminación<br>
+      • Coloca el código horizontal dentro del recuadro<br>
+      • Mantén quieto el celular 2-3 segundos
+    `;
+    readerDiv.appendChild(instrucciones);
     
-    // Botón para cerrar escáner
+    // Botón para cerrar
     const btnCerrar = document.createElement('button');
     btnCerrar.textContent = '✕ Cerrar Cámara';
     btnCerrar.className = 'btn';
-    btnCerrar.style.background = '#EF4444';
-    btnCerrar.style.color = 'white';
-    btnCerrar.style.marginTop = '10px';
+    btnCerrar.style.cssText = 'background: #EF4444; color: white; margin-top: 10px; width: 100%;';
     btnCerrar.onclick = detenerEscanerCodigo;
     readerDiv.appendChild(btnCerrar);
   }
@@ -1339,43 +1336,39 @@ function iniciarEscanerCodigo() {
   
   html5QrCodeScanner = new Html5Qrcode("reader");
   
-const config = {
-  fps: 20,  // Más cuadros por segundo = más rápido
-  qrbox: function(viewfinderWidth, viewfinderHeight) {
-    // Hacer el cuadro más pequeño y adaptable
-    let minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-    let qrboxSize = Math.floor(minEdge * 0.7);
-    return {
-      width: qrboxSize,
-      height: Math.floor(qrboxSize * 0.4)  // Más estrecho para códigos de barras
-    };
-  },
-  aspectRatio: 2.5,
-  disableFlip: false,
-  videoConstraints: {
-    facingMode: "environment",
-    focusMode: "continuous"  // Enfoque continuo
-  },
-  formatsToSupport: [
-    Html5QrcodeSupportedFormats.CODE_128,
-    Html5QrcodeSupportedFormats.CODE_39
-  ]
-};
+  const config = {
+    fps: 10,
+    qrbox: { width: 250, height: 80 },  // Más pequeño y estrecho
+    aspectRatio: 3.0,
+    disableFlip: false,
+    showTorchButtonIfSupported: true,  // Mostrar linterna si está disponible
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39
+    ]
+  };
   
-html5QrCodeScanner.start(
-  { facingMode: "environment" },
-  config,
-  (decodedText) => {
-    console.log('📷 Código escaneado:', decodedText);
-    elements.inputCodigo.value = decodedText;
+  // Solicitar cámara con enfoque automático
+  html5QrCodeScanner.start(
+    { 
+      facingMode: "environment",
+      advanced: [
+        { focusMode: "continuous" },
+        { focusMode: "auto" }
+      ]
+    },
+    config,
+    (decodedText) => {
+      console.log('📷 Código escaneado:', decodedText);
+      elements.inputCodigo.value = decodedText;
+      detenerEscanerCodigo();
+      buscarCodigo();
+    }
+  ).catch((err) => {
+    console.error('❌ Error al iniciar escáner:', err);
+    mostrarAlerta('No se pudo acceder a la cámara', 'error');
     detenerEscanerCodigo();
-    buscarCodigo();
-  }
-).catch((err) => {
-  console.error('❌ Error al iniciar escáner:', err);
-  mostrarAlerta('No se pudo acceder a la cámara', 'error');
-  detenerEscanerCodigo();
-});
+  });
 }
 
 function detenerEscanerCodigo() {
