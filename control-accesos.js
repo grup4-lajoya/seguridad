@@ -1336,26 +1336,21 @@ function iniciarEscanerCodigo() {
   
   html5QrCodeScanner = new Html5Qrcode("reader");
   
-  const config = {
-    fps: 10,
-    qrbox: { width: 250, height: 80 },  // Más pequeño y estrecho
-    aspectRatio: 3.0,
-    disableFlip: false,
-    showTorchButtonIfSupported: true,  // Mostrar linterna si está disponible
-    formatsToSupport: [
-      Html5QrcodeSupportedFormats.CODE_128,
-      Html5QrcodeSupportedFormats.CODE_39
-    ]
-  };
+ const config = {
+  fps: 10,
+  qrbox: { width: 250, height: 80 },
+  disableFlip: false,
+  showTorchButtonIfSupported: true,
+  formatsToSupport: [
+    Html5QrcodeSupportedFormats.CODE_128,
+    Html5QrcodeSupportedFormats.CODE_39
+  ]
+};
   
   // Solicitar cámara con enfoque automático
   html5QrCodeScanner.start(
     { 
       facingMode: "environment",
-      advanced: [
-        { focusMode: "continuous" },
-        { focusMode: "auto" }
-      ]
     },
     config,
     (decodedText) => {
