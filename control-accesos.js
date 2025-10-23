@@ -1339,21 +1339,28 @@ function iniciarEscanerCodigo() {
   
   html5QrCodeScanner = new Html5Qrcode("reader");
   
-  const config = {
-    fps: 10,
-    qrbox: { width: 280, height: 100 },  // Más ancho para códigos de barras
-    aspectRatio: 2.8,  // Formato horizontal
-    disableFlip: false,
-    experimentalFeatures: {
-      useBarCodeDetectorIfSupported: true
-    },
-    formatsToSupport: [
-      Html5QrcodeSupportedFormats.CODE_128,
-      Html5QrcodeSupportedFormats.CODE_39,
-      Html5QrcodeSupportedFormats.EAN_13,
-      Html5QrcodeSupportedFormats.EAN_8
-    ]
-  };
+const config = {
+  fps: 20,  // Más cuadros por segundo = más rápido
+  qrbox: function(viewfinderWidth, viewfinderHeight) {
+    // Hacer el cuadro más pequeño y adaptable
+    let minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+    let qrboxSize = Math.floor(minEdge * 0.7);
+    return {
+      width: qrboxSize,
+      height: Math.floor(qrboxSize * 0.4)  // Más estrecho para códigos de barras
+    };
+  },
+  aspectRatio: 2.5,
+  disableFlip: false,
+  videoConstraints: {
+    facingMode: "environment",
+    focusMode: "continuous"  // Enfoque continuo
+  },
+  formatsToSupport: [
+    Html5QrcodeSupportedFormats.CODE_128,
+    Html5QrcodeSupportedFormats.CODE_39
+  ]
+};
   
 html5QrCodeScanner.start(
   { facingMode: "environment" },
