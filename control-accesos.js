@@ -1105,11 +1105,14 @@ function solicitarPlacaSalida(persona) {
   // Identificar el vehículo con el que ingresó
   const vehiculoIngresoId = persona.ingreso_activo?.id_vehiculo;
   
-  // Construir el selector de vehículos
-  let vehiculosSelectHTML = '<option value="">-- Selecciona un vehículo --</option>';
-  
-  if (persona.vehiculos && persona.vehiculos.length > 0) {
-    persona.vehiculos.forEach(v => {
+// Construir el selector de vehículos
+let vehiculosSelectHTML = '<option value="">-- Selecciona un vehículo --</option>';
+
+// ✅ VALIDACIÓN MEJORADA
+const tieneVehiculos = persona.vehiculos && Array.isArray(persona.vehiculos) && persona.vehiculos.length > 0;
+
+if (tieneVehiculos) {
+  persona.vehiculos.forEach(v => {
       const esVehiculoIngreso = v.id === vehiculoIngresoId;
       vehiculosSelectHTML += `
         <option value="${v.id}" ${esVehiculoIngreso ? 'selected' : ''}>
@@ -1131,7 +1134,7 @@ function solicitarPlacaSalida(persona) {
       </div>
       
       <div class="resultado-body">
-        ${persona.vehiculos && persona.vehiculos.length > 0 ? `
+       ${tieneVehiculos ? `
           <div class="input-group">
             <label for="selectVehiculoSalida">Selecciona el vehículo:</label>
             <select 
