@@ -1110,12 +1110,12 @@ async function registrarIngresoConVehiculo(conductor) {
 function solicitarPlacaSalida(persona) {
   // Identificar el vehículo con el que ingresó
   const vehiculoIngresoId = persona.ingreso_activo?.id_vehiculo;
+
+  // ✅ VALIDACIÓN MEJORADA
+const tieneVehiculos = persona.vehiculos && Array.isArray(persona.vehiculos) && persona.vehiculos.length > 0;
   
 // Construir el selector de vehículos
 let vehiculosSelectHTML = '<option value="">-- Selecciona un vehículo --</option>';
-
-// ✅ VALIDACIÓN MEJORADA
-const tieneVehiculos = persona.vehiculos && Array.isArray(persona.vehiculos) && persona.vehiculos.length > 0;
 
 if (tieneVehiculos) {
   persona.vehiculos.forEach(v => {
@@ -1179,27 +1179,28 @@ if (tieneVehiculos) {
     </div>
   `;
   
-  setTimeout(() => {
-    const selectVehiculo = document.getElementById('selectVehiculoSalida');
-    const inputPlaca = document.getElementById('inputPlacaSalida');
-    
-    if (selectVehiculo) {
-      selectVehiculo.focus();
-    } else if (inputPlaca) {
-      inputPlaca.focus();
-    }
-    
-    if (inputPlaca) {
-      inputPlaca.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          procesarSalidaConVehiculo();
-        }
-      });
-    }
-  }, 100);
+setTimeout(() => {
+  const selectVehiculo = document.getElementById('selectVehiculoSalida');
+  const inputPlaca = document.getElementById('inputPlacaSalida');
   
-  // Guardar persona en variable global
-  window.personaSalida = persona;
+  if (selectVehiculo) {
+    selectVehiculo.focus();
+  } else if (inputPlaca) {
+    inputPlaca.focus();
+  }
+  
+  // ✅ VALIDAR QUE EXISTE ANTES DE AGREGAR LISTENER
+  if (inputPlaca) {
+    inputPlaca.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        procesarSalidaConVehiculo();
+      }
+    });
+  }
+}, 100);
+
+// Guardar persona en variable global
+window.personaSalida = persona;
 }
 async function procesarSalidaConVehiculo() {
   try {
