@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+   verificarAuth();
+  elements.inputCodigo.focus();
 });
 
 // ============================================
@@ -1343,10 +1345,6 @@ function verificarAuth() {
     window.location.href = 'index.html';
   }
 }
-// Inicializar
-verificarAuth();
-elements.inputCodigo.focus();
-
 async function crearVehiculoTemporal(placa, persona) {
   const sesion = JSON.parse(localStorage.getItem('sesion'));
   
