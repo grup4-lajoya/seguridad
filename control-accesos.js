@@ -1172,7 +1172,7 @@ if (tieneVehiculos) {
         <button class="btn btn-success" onclick="procesarSalidaConVehiculo()">
           🔍 Registrar Salida
         </button>
-        <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarPersona(${JSON.stringify(persona)})'>
+       <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarPersona(window.personaActual)'>
           ← Volver
         </button>
       </div>
