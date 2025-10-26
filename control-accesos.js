@@ -191,7 +191,7 @@ ${esSalida ? `
   </div>
   
   <div class="resultado-actions">
-    <button class="btn" style="background: #10B981; color: white;" onclick='solicitarPlacaSalida(${JSON.stringify(data)})'>
+    <button class="btn" style="background: #10B981; color: white;" onclick='solicitarPlacaSalidaWrapper()'>
       ✅ Sí, con vehículo
     </button>
     <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
@@ -234,6 +234,12 @@ ${esSalida ? `
   `;
   
   elements.resultado.classList.remove('hidden');
+    window.personaActual = data;
+}
+function solicitarPlacaSalidaWrapper() {
+  if (window.personaActual) {
+    solicitarPlacaSalida(window.personaActual);
+  }
 }
 function mostrarVehiculosPersona(persona) {
   const vehiculosHTML = persona.vehiculos.map(v => {
