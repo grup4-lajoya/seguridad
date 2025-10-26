@@ -593,10 +593,10 @@ function mostrarVehiculo(data) {
 
       <div class="resultado-actions">
         ${esSalida ? `
-          <button class="btn" style="background: #EF4444; color: white;" 
-                  onclick="solicitarConductorSalida('${data.id}', '${data.ingreso_activo.id_persona}', '${data.ingreso_activo.tipo_persona}')">
-            👤 ¿Quién conduce?
-          </button>
+            <button class="btn" style="background: #EF4444; color: white;" 
+              onclick="solicitarConductorSalidaWrapper()">
+        👤 ¿Quién conduce?
+      </button>
         ` : `
           <button class="btn btn-primary" onclick="solicitarConductor('${data.id}')">
             👤 ¿Quién conduce?
@@ -604,12 +604,24 @@ function mostrarVehiculo(data) {
         `}
       </div>
     </div>
-  `;
+`;
+    elements.resultado.classList.remove('hidden');
   
-  elements.resultado.classList.remove('hidden');
+  // ✅ AGREGAR ESTAS LÍNEAS:
+  window.vehiculoActual = data;
 }
 
-function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPersonaIngreso) {
+// ✅ AGREGAR ESTA FUNCIÓN COMPLETA DESPUÉS DEL CIERRE DE mostrarVehiculo:
+function solicitarConductorSalidaWrapper() {
+  if (window.vehiculoActual) {
+    solicitarConductorSalida(
+      window.vehiculoActual.id,
+      window.vehiculoActual.ingreso_activo.id_persona,
+      window.vehiculoActual.ingreso_activo.tipo_persona
+    );
+  }
+}
+async function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPersonaIngreso) {
   console.log('👤 Solicitar conductor para SALIDA del vehículo:', vehiculoId);
   
   // Guardar datos del vehículo y persona que ingresó
@@ -619,6 +631,47 @@ function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPersonaIngre
     tipoPersonaIngreso
   };
   
+  // Mostrar pantalla de carga mientras buscamos al conductor
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon">👤</div>
+        <div>
+          <h3>Cargando información...</h3>
+        </div>
+      </div>
+      <div class="resultado-body" style="text-align: center; padding: 40px;">
+        <div class="spinner" style="margin: 0 auto;"></div>
+      </div>
+    </div>
+  `;
+  
+  // Buscar los datos completos del conductor que ingresó
+  let conductorQueIngreso = null;
+  try {
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: idPersonaIngreso,
+        tipo: tipoPersonaIngreso === 'foraneo' ? 'dni' : 'nsa'
+      }),
+    });
+    
+    const resultado = await response.json();
+    if (resultado.success && resultado.data.tipo_resultado === 'persona') {
+      conductorQueIngreso = resultado.data;
+      window.conductorPredeterminado = conductorQueIngreso;
+    }
+  } catch (error) {
+    console.error('Error al buscar conductor:', error);
+  }
+  
+  // Mostrar pantalla con conductor pre-seleccionado
   elements.resultado.innerHTML = `
     <div class="resultado-card">
       <div class="resultado-header">
@@ -630,15 +683,36 @@ function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPersonaIngre
       </div>
       
       <div class="resultado-body">
-        <div class="alert alert-info" style="margin-bottom: 16px;">
-          <span>ℹ️</span>
-          <div>
-            <strong>Puede ser la misma persona que ingresó o una diferente</strong>
+        ${conductorQueIngreso ? `
+          <div class="alert alert-success" style="margin-bottom: 16px;">
+            <span>⭐</span>
+            <div>
+              <strong>Conductor que ingresó:</strong><br>
+              ${conductorQueIngreso.nombre}<br>
+              <small>${conductorQueIngreso.nsa ? 'NSA: ' + conductorQueIngreso.nsa : ''} ${conductorQueIngreso.dni ? '| DNI: ' + conductorQueIngreso.dni : ''}</small>
+            </div>
           </div>
-        </div>
+          
+          <div class="resultado-actions" style="margin-bottom: 16px;">
+            <button class="btn btn-success" onclick="confirmarConductorPredeterminado()">
+              ✅ Salida con ${conductorQueIngreso.nombre.split(' ')[0]}
+            </button>
+          </div>
+          
+          <div style="text-align: center; margin: 16px 0; color: #6B7280; font-size: 14px; font-weight: 600;">
+            - O identifica otro conductor -
+          </div>
+        ` : `
+          <div class="alert alert-info" style="margin-bottom: 16px;">
+            <span>ℹ️</span>
+            <div>
+              <strong>Identifica quién conduce el vehículo</strong>
+            </div>
+          </div>
+        `}
         
         <div class="input-group">
-          <label for="inputConductorSalida">Escanea NSA o DNI del conductor:</label>
+          <label for="inputConductorSalida">Escanea o ingresa NSA/DNI del conductor:</label>
           <input 
             type="text" 
             id="inputConductorSalida" 
@@ -650,26 +724,35 @@ function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPersonaIngre
       </div>
 
       <div class="resultado-actions">
-        <button class="btn" style="background: #EF4444; color: white;" onclick="buscarConductorSalida()">
+        <button class="btn" style="background: #4F46E5; color: white;" onclick="buscarConductorSalida()">
           🔍 Buscar Conductor
         </button>
         <button class="btn" style="background: #6B7280; color: white;" onclick="limpiarResultado()">
-          ✕ Cancelar
+          ← Cancelar
         </button>
       </div>
     </div>
   `;
   
   setTimeout(() => {
-    document.getElementById('inputConductorSalida').focus();
-    document.getElementById('inputConductorSalida').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        buscarConductorSalida();
-      }
-    });
+    const input = document.getElementById('inputConductorSalida');
+    if (input) {
+      input.focus();
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          buscarConductorSalida();
+        }
+      });
+    }
   }, 100);
 }
 
+// Nueva función para confirmar conductor predeterminado
+async function confirmarConductorPredeterminado() {
+  if (window.conductorPredeterminado && window.vehiculoEnProcesoSalida) {
+    await registrarSalidaConVehiculo(window.conductorPredeterminado);
+  }
+}
 async function buscarConductorSalida() {
   try {
     const inputConductor = document.getElementById('inputConductorSalida');
