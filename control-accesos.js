@@ -1311,7 +1311,7 @@ async function procesarSalidaConVehiculo() {
 // ============================================
 // EVENTOS
 // ============================================
-elements.btnBuscar.addEventListener('click', () => {
+/*elements.btnBuscar.addEventListener('click', () => {
   const codigo = elements.inputCodigo.value.trim();
   
   if (!codigo) {
@@ -1326,7 +1326,7 @@ elements.inputCodigo.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     elements.btnBuscar.click();
   }
-});
+});*/
 
 elements.btnLimpiar.addEventListener('click', () => {
   elements.inputCodigo.value = '';
