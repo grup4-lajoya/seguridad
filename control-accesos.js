@@ -1214,7 +1214,7 @@ async function procesarSalidaConVehiculo() {
     
     // Prioridad 1: Si seleccionó un vehículo del dropdown
     if (selectVehiculo && selectVehiculo.value) {
-      vehiculoId = parseInt(selectVehiculo.value);
+  vehiculoId = selectVehiculo.value; // Sin parseInt, es un UUID string
       
       // Buscar la placa del vehículo seleccionado
       const vehiculoSeleccionado = window.personaSalida.vehiculos.find(v => v.id === vehiculoId);
