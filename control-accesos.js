@@ -1102,19 +1102,53 @@ async function registrarIngresoConVehiculo(conductor) {
   }
 }
 function solicitarPlacaSalida(persona) {
+  // Identificar el vehículo con el que ingresó
+  const vehiculoIngresoId = persona.ingreso_activo?.id_vehiculo;
+  
+  // Construir el selector de vehículos
+  let vehiculosSelectHTML = '<option value="">-- Selecciona un vehículo --</option>';
+  
+  if (persona.vehiculos && persona.vehiculos.length > 0) {
+    persona.vehiculos.forEach(v => {
+      const esVehiculoIngreso = v.id === vehiculoIngresoId;
+      vehiculosSelectHTML += `
+        <option value="${v.id}" ${esVehiculoIngreso ? 'selected' : ''}>
+          ${v.placa} - ${v.marca} ${v.modelo}
+          ${esVehiculoIngreso ? ' ⭐ (Ingresó con este)' : ''}
+        </option>
+      `;
+    });
+  }
+  
   elements.resultado.innerHTML = `
     <div class="resultado-card">
       <div class="resultado-header">
         <div class="resultado-icon">🚗</div>
         <div>
-          <h3>Escanear Vehículo de Salida</h3>
+          <h3>Seleccionar Vehículo de Salida</h3>
           <span class="badge badge-primary">${persona.nombre}</span>
         </div>
       </div>
       
       <div class="resultado-body">
+        ${persona.vehiculos && persona.vehiculos.length > 0 ? `
+          <div class="input-group">
+            <label for="selectVehiculoSalida">Selecciona el vehículo:</label>
+            <select 
+              id="selectVehiculoSalida" 
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid #E5E7EB; font-size: 14px;"
+            >
+              ${vehiculosSelectHTML}
+            </select>
+          </div>
+          
+          <div style="text-align: center; margin: 12px 0; color: #6B7280; font-size: 13px;">
+            - O -
+          </div>
+        ` : ''}
+        
         <div class="input-group">
-          <label for="inputPlacaSalida">Escanea la placa del vehículo:</label>
+          <label for="inputPlacaSalida">O escanea otra placa:</label>
           <input 
             type="text" 
             id="inputPlacaSalida" 
@@ -1127,7 +1161,7 @@ function solicitarPlacaSalida(persona) {
 
       <div class="resultado-actions">
         <button class="btn btn-success" onclick="procesarSalidaConVehiculo()">
-          🔍 Buscar y Registrar Salida
+          🔍 Registrar Salida
         </button>
         <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarPersona(${JSON.stringify(persona)})'>
           ← Volver
@@ -1137,60 +1171,90 @@ function solicitarPlacaSalida(persona) {
   `;
   
   setTimeout(() => {
-    document.getElementById('inputPlacaSalida').focus();
+    const selectVehiculo = document.getElementById('selectVehiculoSalida');
+    const inputPlaca = document.getElementById('inputPlacaSalida');
     
-    document.getElementById('inputPlacaSalida').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        procesarSalidaConVehiculo();
-      }
-    });
+    if (selectVehiculo) {
+      selectVehiculo.focus();
+    } else if (inputPlaca) {
+      inputPlaca.focus();
+    }
+    
+    if (inputPlaca) {
+      inputPlaca.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          procesarSalidaConVehiculo();
+        }
+      });
+    }
   }, 100);
   
   // Guardar persona en variable global
   window.personaSalida = persona;
 }
-
 async function procesarSalidaConVehiculo() {
   try {
+    const selectVehiculo = document.getElementById('selectVehiculoSalida');
     const inputPlaca = document.getElementById('inputPlacaSalida');
-    const placa = inputPlaca.value.trim().toUpperCase();
     
-    if (!placa) {
-      mostrarAlerta('Por favor ingresa la placa del vehículo', 'error');
+    let vehiculoId = null;
+    let placa = null;
+    
+    // Prioridad 1: Si seleccionó un vehículo del dropdown
+    if (selectVehiculo && selectVehiculo.value) {
+      vehiculoId = parseInt(selectVehiculo.value);
+      
+      // Buscar la placa del vehículo seleccionado
+      const vehiculoSeleccionado = window.personaSalida.vehiculos.find(v => v.id === vehiculoId);
+      if (vehiculoSeleccionado) {
+        placa = vehiculoSeleccionado.placa;
+      }
+    }
+    // Prioridad 2: Si ingresó una placa manualmente
+    else if (inputPlaca && inputPlaca.value.trim()) {
+      placa = inputPlaca.value.trim().toUpperCase();
+    }
+    
+    // Validar que se haya seleccionado o ingresado algo
+    if (!vehiculoId && !placa) {
+      mostrarAlerta('Por favor selecciona un vehículo o ingresa una placa', 'error');
       return;
     }
     
-    mostrarAlerta('Buscando vehículo...', 'info');
+    mostrarAlerta('Procesando salida...', 'info');
     
-    // Buscar el vehículo
-    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        codigo: placa,
-        tipo: 'placa'
-      }),
-    });
-    const resultado = await response.json(); 
-    
-if (!resultado.success) {
-  throw new Error(`Vehículo con placa ${placa} no encontrado en el sistema`);
-}
-
-if (resultado.data.tipo_resultado !== 'vehiculo') {
-  throw new Error('El código ingresado no corresponde a un vehículo');
-}
-
-// ⚠️ VALIDAR QUE EL VEHÍCULO ESTÉ DENTRO
-if (!resultado.data.ingreso_activo) {
-  throw new Error(`El vehículo ${placa} no está dentro de las instalaciones. Debe ingresar primero.`);
-}
-
-// Registrar salida con vehículo
+    // Si se ingresó placa manualmente, buscar el vehículo
+    if (!vehiculoId && placa) {
+      const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+          'apikey': CONFIG.SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          codigo: placa,
+          tipo: 'placa'
+        }),
+      });
+      
+      const resultado = await response.json();
+      
+      if (!resultado.success) {
+        throw new Error(`Vehículo con placa ${placa} no encontrado en el sistema`);
+      }
+      
+      if (resultado.data.tipo_resultado !== 'vehiculo') {
+        throw new Error('El código ingresado no corresponde a un vehículo');
+      }
+      
+      // ⚠️ VALIDAR QUE EL VEHÍCULO ESTÉ DENTRO
+      if (!resultado.data.ingreso_activo) {
+        throw new Error(`El vehículo ${placa} no está dentro de las instalaciones. Debe ingresar primero.`);
+      }
+      
+      vehiculoId = resultado.data.id;
+    }
     
     // Registrar salida con vehículo
     const sesion = JSON.parse(localStorage.getItem('sesion'));
@@ -1206,7 +1270,7 @@ if (!resultado.data.ingreso_activo) {
       body: JSON.stringify({
         id_persona: window.personaSalida.id,
         tipo_persona: window.personaSalida.origen,
-        id_vehiculo: resultado.data.id,
+        id_vehiculo: vehiculoId,
         ingreso_con_vehiculo: true,
         id_usuario: idUsuario
       }),
@@ -1228,10 +1292,11 @@ if (!resultado.data.ingreso_activo) {
     }, 2500);
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('Error:', error);
     mostrarAlerta(error.message, 'error');
   }
 }
+
 
 // ============================================
 // EVENTOS
