@@ -1257,12 +1257,14 @@ async function crearPersonaTemporal() {
       setTimeout(() => {
         registrarIngreso(personaTemporal.id, personaTemporal.origen);
       }, 1000);
-    } else {
-      // MODO NORMAL: Mostrar opciones de ingreso (con/sin vehículo)
-      setTimeout(() => {
-        mostrarPersona(personaTemporal);
-      }, 1000);
-    }
+      } else {
+        // MODO NORMAL: Mostrar opciones de ingreso (con/sin vehículo)
+        console.log('🔵 Llamando a mostrarPersona en 1 segundo...', modoRutinasActivo);
+        setTimeout(() => {
+          console.log('🔵 Ejecutando mostrarPersona ahora, modoRutinasActivo:', modoRutinasActivo);
+          mostrarPersona(personaTemporal);
+        }, 1000);
+      }
     
     // Limpiar datos temporales
     window.personaTemporalData = null;
