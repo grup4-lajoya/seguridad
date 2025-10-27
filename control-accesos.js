@@ -1246,7 +1246,8 @@ async function crearPersonaTemporal() {
     mostrarAlerta('✅ Registro temporal creado exitosamente', 'success');
     
     // Decidir flujo según contexto
-    if (data.autoRegistrar && modoRutinasActivo) {
+    // Decidir flujo según contexto
+    if (modoRutinasActivo) {
       // MODO RUTINAS: Registrar ingreso automáticamente
       setTimeout(() => {
         registrarIngreso(personaTemporal.id, personaTemporal.origen);
