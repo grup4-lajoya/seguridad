@@ -427,6 +427,66 @@ function escanearOtraPlaca(persona) {
   
   window.personaIngreso = persona;
 }
+function solicitarPlacaIngreso(persona) {
+  console.log('🚗 Solicitando placa para persona sin vehículos registrados');
+  
+  // Guardar persona en window para uso posterior
+  window.personaIngreso = persona;
+  
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #10B981;">🚗</div>
+        <div>
+          <h3>Identificar Vehículo</h3>
+          <span class="badge badge-primary">${persona.nombre}</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <div>
+            <strong>Ingrese la placa del vehículo</strong><br>
+            El sistema verificará si está registrado. Si no existe, se creará como temporal.
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="inputOtraPlaca">Placa del vehículo:</label>
+          <input 
+            type="text" 
+            id="inputOtraPlaca" 
+            placeholder="Ej: ABC-123"
+            autocomplete="off"
+            style="text-align: center; text-transform: uppercase;"
+          >
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="procesarIngresoConOtraPlaca()">
+          ✅ Verificar y Continuar
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarPersona(${JSON.stringify(persona)})'>
+          ← Volver
+        </button>
+      </div>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    const input = document.getElementById('inputOtraPlaca');
+    if (input) {
+      input.focus();
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          procesarIngresoConOtraPlaca();
+        }
+      });
+    }
+  }, 100);
+}
 
 async function procesarIngresoConOtraPlaca() {
   try {
@@ -456,7 +516,7 @@ const resultado = await response.json();
 
 // Si el vehículo NO existe, crearlo como temporal
 if (!resultado.success) {
-  mostrarAlerta('Vehículo no encontrado, registrando como temporal...', 'info');
+  mostrarAlerta('⚠️ VEHÍCULO NO REGISTRADO O AUTORIZADO - Registrando como temporal...', 'warning');
   
   const idVehiculoTemporal = await crearVehiculoTemporal(placa, window.personaIngreso);
   window.vehiculoEnProceso = idVehiculoTemporal;
