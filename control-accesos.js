@@ -693,7 +693,7 @@ async function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPerson
           <button 
             type="button" 
             class="btn btn-primary" 
-            onclick="iniciarEscanerCodigo()"
+            onclick="escanearConductor()"
             style="flex: 1;">
             📷 Escanear DNI/NSA
           </button>
@@ -722,6 +722,62 @@ async function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPerson
       });
     }
   }, 100);
+}
+function escanearConductor() {
+  // Ocultar el input temporal
+  const inputConductor = document.getElementById('inputConductorSalida');
+  if (inputConductor) {
+    inputConductor.style.display = 'none';
+  }
+  
+  // Crear div para el escáner si no existe
+  if (!document.getElementById('readerConductor')) {
+    const readerDiv = document.createElement('div');
+    readerDiv.id = 'readerConductor';
+    readerDiv.style.cssText = 'width: 100%; max-width: 500px; margin: 20px auto;';
+    
+    const inputGroup = inputConductor.parentElement;
+    inputGroup.appendChild(readerDiv);
+  }
+  
+  // Iniciar escáner
+  const html5QrCode = new Html5Qrcode("readerConductor");
+  
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 150 } },
+    (decodedText) => {
+      console.log('✅ Código escaneado:', decodedText);
+      
+      // Detener escáner
+      html5QrCode.stop().then(() => {
+        // Limpiar el div del escáner
+        const readerDiv = document.getElementById('readerConductor');
+        if (readerDiv) {
+          readerDiv.remove();
+        }
+        
+        // Mostrar input de nuevo y llenar con el código
+        if (inputConductor) {
+          inputConductor.style.display = 'block';
+          inputConductor.value = decodedText;
+          inputConductor.focus();
+        }
+        
+        // Auto-buscar
+        buscarConductorSalida();
+      });
+    },
+    (errorMessage) => {
+      // Ignorar errores de escaneo continuo
+    }
+  ).catch((err) => {
+    console.error('Error al iniciar cámara:', err);
+    mostrarAlerta('No se pudo acceder a la cámara', 'error');
+    if (inputConductor) {
+      inputConductor.style.display = 'block';
+    }
+  });
 }
 
 // Nueva función para confirmar conductor predeterminado
