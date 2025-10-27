@@ -1747,16 +1747,50 @@ async function procesarSalidaConVehiculo() {
     let vehiculoId = null;
     let placa = null;
     
-    // Prioridad 1: Si seleccionó un vehículo del dropdown
-    if (selectVehiculo && selectVehiculo.value) {
+// Prioridad 1: Si seleccionó un vehículo del dropdown
+if (selectVehiculo && selectVehiculo.value) {
   vehiculoId = selectVehiculo.value; // Sin parseInt, es un UUID string
-      
-      // Buscar la placa del vehículo seleccionado
-      const vehiculoSeleccionado = window.personaSalida.vehiculos.find(v => v.id === vehiculoId);
-      if (vehiculoSeleccionado) {
-        placa = vehiculoSeleccionado.placa;
-      }
-    }
+  
+  // Buscar la placa del vehículo seleccionado
+  const vehiculoSeleccionado = window.personaSalida.vehiculos.find(v => v.id === vehiculoId);
+  if (vehiculoSeleccionado) {
+    placa = vehiculoSeleccionado.placa;
+  }
+  
+  if (!placa) {
+    throw new Error('No se pudo obtener la placa del vehículo seleccionado');
+  }
+  
+  // ✅ VALIDAR: Verificar que el vehículo esté dentro (buscar por placa)
+  mostrarAlerta('Verificando vehículo...', 'info');
+  
+  const responseVerificar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+      'apikey': CONFIG.SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({
+      codigo: placa,
+      tipo: 'placa'
+    }),
+  });
+  
+  const resultadoVerificar = await responseVerificar.json();
+  
+  if (!resultadoVerificar.success) {
+    throw new Error(`No se pudo verificar el vehículo ${placa}`);
+  }
+  
+  // ⚠️ VALIDAR QUE EL VEHÍCULO ESTÉ DENTRO
+  if (!resultadoVerificar.data.ingreso_activo) {
+    throw new Error(`El vehículo ${placa} no está dentro de las instalaciones. No puede salir con un vehículo que no ha ingresado.`);
+  }
+  
+  // Si todo está bien, actualizar el vehiculoId con el del resultado
+  vehiculoId = resultadoVerificar.data.id;
+}
     // Prioridad 2: Si ingresó una placa manualmente
     else if (inputPlaca && inputPlaca.value.trim()) {
       placa = inputPlaca.value.trim().toUpperCase();
