@@ -130,11 +130,14 @@ function mostrarPersona(data) {
   const esTemporal = data.tipo_origen === 'temporal';
   
   // ✅ SI MODO RUTINAS ESTÁ ACTIVO: Procesar directamente sin preguntar
-if (modoRutinasActivo) {
-  // Registrar automáticamente usando la función existente
-  registrarIngreso(data.id, data.origen);
-  return;
-}
+  // ✅ SI MODO RUTINAS ESTÁ ACTIVO: Procesar directamente sin preguntar
+  if (modoRutinasActivo === true) {
+    console.log('🚌 MODO RUTINAS: Registrando automáticamente');
+    registrarIngreso(data.id, data.origen);
+    return;
+  }
+
+console.log('📋 MODO NORMAL: Mostrando opciones'); // ← Para confirmar que llega aquí
   
   // ⬇️ FLUJO NORMAL (cuando modo rutinas NO está activo)
   
