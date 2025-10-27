@@ -42,6 +42,10 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+   const btnEscaneoMasivo = document.getElementById('btnEscaneoMasivo');
+  if (btnEscaneoMasivo) {
+    btnEscaneoMasivo.addEventListener('click', iniciarEscaneoMasivo);
+  }
    verificarAuth();
   elements.inputCodigo.focus();
 });
@@ -1775,3 +1779,368 @@ function mostrarConfirmacionPlaca(textoDetectado, callback) {
     document.getElementById('placaConfirmada').select();
   }, 100);
 }
+// Variables globales para escaneo masivo
+let escaneoMasivoActivo = false;
+let personasEscaneadas = [];
+let ultimoCodigoEscaneado = null;
+let tiempoUltimoEscaneo = 0;
+
+function iniciarEscaneoMasivo() {
+  console.log('🚀 Iniciando escaneo masivo...');
+  
+  escaneoMasivoActivo = true;
+  personasEscaneadas = [];
+  ultimoCodigoEscaneado = null;
+  tiempoUltimoEscaneo = 0;
+  
+  // Ocultar controles principales
+  elements.inputCodigo.parentElement.style.display = 'none';
+  elements.btnBuscar.style.display = 'none';
+  elements.btnLimpiar.style.display = 'none';
+  
+  // Mostrar interfaz de escaneo masivo
+  elements.resultado.classList.remove('hidden');
+  elements.resultado.innerHTML = `
+    <div class="resultado-card" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white;">
+      <div class="resultado-header" style="border-bottom-color: rgba(255,255,255,0.2);">
+        <div class="resultado-icon" style="background: rgba(255,255,255,0.2);">📸</div>
+        <div>
+          <h3 style="color: white;">ESCANEO MASIVO ACTIVO</h3>
+          <span class="badge" style="background: rgba(255,255,255,0.3); color: white;">
+            ✅ <span id="contadorMasivo">0</span> personas
+          </span>
+        </div>
+      </div>
+      
+      <div style="background: white; border-radius: 8px; padding: 12px; margin: 16px 0;">
+        <div id="readerMasivo" style="width: 100%;"></div>
+      </div>
+      
+      <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+        <p style="font-size: 13px; margin-bottom: 8px; opacity: 0.9;">
+          ℹ️ Escanea los códigos de forma continua. El sistema los procesará automáticamente.
+        </p>
+      </div>
+      
+      <div id="listaMasivo" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; margin-bottom: 16px;">
+        <p style="text-align: center; opacity: 0.7; font-size: 14px;">
+          Esperando escaneos...
+        </p>
+      </div>
+      
+      <button 
+        class="btn" 
+        style="background: white; color: #8B5CF6; font-weight: 700;"
+        onclick="detenerEscaneoMasivo()">
+        🛑 Finalizar Escaneo
+      </button>
+    </div>
+  `;
+  
+  // Iniciar escáner continuo
+  iniciarEscanerMasivo();
+}
+
+function iniciarEscanerMasivo() {
+  const html5QrCode = new Html5Qrcode("readerMasivo");
+  
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { 
+      fps: 10, 
+      qrbox: { width: 250, height: 150 },
+      aspectRatio: 1.777778
+    },
+    (decodedText) => {
+      if (!escaneoMasivoActivo) return;
+      
+      // Evitar escaneos duplicados muy rápidos (menos de 2 segundos)
+      const ahora = Date.now();
+      if (decodedText === ultimoCodigoEscaneado && (ahora - tiempoUltimoEscaneo) < 2000) {
+        console.log('⏭️ Código duplicado ignorado:', decodedText);
+        return;
+      }
+      
+      ultimoCodigoEscaneado = decodedText;
+      tiempoUltimoEscaneo = ahora;
+      
+      console.log('📸 Código escaneado en modo masivo:', decodedText);
+      procesarCodigoMasivo(decodedText);
+    },
+    (errorMessage) => {
+      // Ignorar errores de escaneo continuo
+    }
+  ).catch((err) => {
+    console.error('❌ Error al iniciar cámara:', err);
+    mostrarAlerta('No se pudo acceder a la cámara', 'error');
+    detenerEscaneoMasivo();
+  });
+  
+  // Guardar instancia para poder detenerla después
+  window.escanerMasivoActivo = html5QrCode;
+}
+
+async function procesarCodigoMasivo(codigo) {
+  const deteccion = detectarTipoCodigo(codigo);
+  
+  // Solo aceptar NSA o DNI (no placas)
+  if (deteccion.tipo === 'placa') {
+    agregarResultadoMasivo('❌ Placas no permitidas en modo masivo', 'error', codigo);
+    reproducirSonidoError();
+    return;
+  }
+  
+  if (deteccion.tipo === 'desconocido') {
+    agregarResultadoMasivo('❌ Código no reconocido', 'error', codigo);
+    reproducirSonidoError();
+    return;
+  }
+  
+  try {
+    // Buscar persona
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: deteccion.valor,
+        tipo: deteccion.tipo
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success || resultado.data.tipo_resultado !== 'persona') {
+      agregarResultadoMasivo('❌ Persona no encontrada', 'error', codigo);
+      reproducirSonidoError();
+      return;
+    }
+    
+    const persona = resultado.data;
+    
+    // Verificar si ya fue escaneada en esta sesión
+    if (personasEscaneadas.find(p => p.id === persona.id)) {
+      agregarResultadoMasivo(`⚠️ ${persona.nombre} - Ya escaneado`, 'warning', codigo);
+      reproducirSonidoError();
+      return;
+    }
+    
+    // Verificar si tiene ingreso activo (es SALIDA)
+    if (persona.ingreso_activo) {
+      // Registrar SALIDA
+      await registrarSalidaMasivo(persona);
+      agregarResultadoMasivo(`✅ SALIDA: ${persona.nombre}`, 'success', codigo);
+      reproducirSonidoExito();
+    } else {
+      // Registrar INGRESO
+      await registrarIngresoMasivo(persona);
+      agregarResultadoMasivo(`✅ INGRESO: ${persona.nombre}`, 'success', codigo);
+      reproducirSonidoExito();
+    }
+    
+    // Agregar a la lista de escaneados
+    personasEscaneadas.push(persona);
+    actualizarContadorMasivo();
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    agregarResultadoMasivo(`❌ Error: ${error.message}`, 'error', codigo);
+    reproducirSonidoError();
+  }
+}
+
+async function registrarIngresoMasivo(persona) {
+  const sesion = JSON.parse(localStorage.getItem('sesion'));
+  const idUsuario = sesion.usuario.id;
+  
+  const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+      'apikey': CONFIG.SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({
+      id_persona: persona.id,
+      tipo_persona: persona.origen,
+      id_usuario: idUsuario,
+      ingreso_con_vehiculo: false,
+      id_vehiculo: null
+    }),
+  });
+  
+  const resultado = await response.json();
+  
+  if (!resultado.success) {
+    throw new Error(resultado.error || 'Error al registrar ingreso');
+  }
+}
+
+async function registrarSalidaMasivo(persona) {
+  const sesion = JSON.parse(localStorage.getItem('sesion'));
+  const idUsuario = sesion.usuario.id;
+  
+  const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_SALIDA, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+      'apikey': CONFIG.SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({
+      id_ingreso: persona.ingreso_activo.id,
+      id_usuario: idUsuario
+    }),
+  });
+  
+  const resultado = await response.json();
+  
+  if (!resultado.success) {
+    throw new Error(resultado.error || 'Error al registrar salida');
+  }
+}
+
+function agregarResultadoMasivo(mensaje, tipo, codigo) {
+  const lista = document.getElementById('listaMasivo');
+  
+  // Si es el primer resultado, limpiar el mensaje inicial
+  if (lista.querySelector('p')) {
+    lista.innerHTML = '';
+  }
+  
+  const colores = {
+    success: 'background: rgba(16, 185, 129, 0.2); color: #10B981; border-left: 4px solid #10B981;',
+    error: 'background: rgba(239, 68, 68, 0.2); color: #EF4444; border-left: 4px solid #EF4444;',
+    warning: 'background: rgba(245, 158, 11, 0.2); color: #F59E0B; border-left: 4px solid #F59E0B;'
+  };
+  
+  const item = document.createElement('div');
+  item.style.cssText = `
+    ${colores[tipo]}
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    animation: slideIn 0.3s ease;
+  `;
+  
+  const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  item.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span>${mensaje}</span>
+      <span style="font-size: 11px; opacity: 0.7;">${hora}</span>
+    </div>
+    <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">${codigo}</div>
+  `;
+  
+  // Agregar al inicio de la lista
+  lista.insertBefore(item, lista.firstChild);
+  
+  // Limitar a 50 resultados
+  if (lista.children.length > 50) {
+    lista.removeChild(lista.lastChild);
+  }
+}
+
+function actualizarContadorMasivo() {
+  const contador = document.getElementById('contadorMasivo');
+  if (contador) {
+    contador.textContent = personasEscaneadas.length;
+  }
+}
+
+function detenerEscaneoMasivo() {
+  console.log('🛑 Deteniendo escaneo masivo...');
+  
+  escaneoMasivoActivo = false;
+  
+  // Detener escáner
+  if (window.escanerMasivoActivo) {
+    window.escanerMasivoActivo.stop().then(() => {
+      console.log('✅ Escáner detenido');
+    }).catch(err => {
+      console.error('Error al detener escáner:', err);
+    });
+  }
+  
+  // Mostrar resumen
+  mostrarResumenMasivo();
+}
+
+function mostrarResumenMasivo() {
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #10B981;">✅</div>
+        <div>
+          <h3>Escaneo Masivo Finalizado</h3>
+          <span class="badge badge-primary">${personasEscaneadas.length} personas procesadas</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-success">
+          <span>✅</span>
+          <div>
+            <strong>Proceso completado exitosamente</strong><br>
+            Se procesaron ${personasEscaneadas.length} personas en total.
+          </div>
+        </div>
+        
+        ${personasEscaneadas.length > 0 ? `
+          <div style="margin-top: 16px;">
+            <strong style="font-size: 14px; color: #111827;">Personas procesadas:</strong>
+            <div style="margin-top: 8px; max-height: 200px; overflow-y: auto;">
+              ${personasEscaneadas.map(p => `
+                <div style="padding: 8px; background: #F3F4F6; border-radius: 6px; margin-bottom: 6px; font-size: 13px;">
+                  ${p.nombre}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+      
+      <div class="resultado-actions">
+        <button class="btn btn-primary" onclick="limpiarResultado()">
+          ← Volver al inicio
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Funciones de sonido (opcionales)
+function reproducirSonidoExito() {
+  // Sonido corto de éxito
+  const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSmH0fPTgjMGHm7A7+OZURE');
+  audio.volume = 0.3;
+  audio.play().catch(() => {});
+}
+
+function reproducirSonidoError() {
+  // Sonido corto de error
+  const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSmH0fPTgjMGHm7A7+OZURE');
+  audio.volume = 0.2;
+  audio.play().catch(() => {});
+}
+
+// Agregar animación CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+`;
+document.head.appendChild(style);
