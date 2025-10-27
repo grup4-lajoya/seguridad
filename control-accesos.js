@@ -598,7 +598,7 @@ function mostrarVehiculo(data) {
         👤 ¿Quién conduce?
       </button>
         ` : `
-          <button class="btn btn-primary" onclick="solicitarConductor('${data.id}')">
+          <button class="btn btn-primary" onclick="solicitarConductorWrapper()">
             👤 ¿Quién conduce?
           </button>
         `}
@@ -619,6 +619,11 @@ function solicitarConductorSalidaWrapper() {
       window.vehiculoActual.ingreso_activo.id_persona,
       window.vehiculoActual.ingreso_activo.tipo_persona
     );
+  }
+}
+function solicitarConductorWrapper() {
+  if (window.vehiculoActual) {
+    solicitarConductor(window.vehiculoActual.id);
   }
 }
 async function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPersonaIngreso) {
@@ -779,8 +784,56 @@ function escanearConductor() {
     }
   });
 }
+function escanearConductorIngreso() {
+  const inputConductor = document.getElementById('inputConductor');
+  if (inputConductor) {
+    inputConductor.style.display = 'none';
+  }
+  
+  if (!document.getElementById('readerConductorIngreso')) {
+    const readerDiv = document.createElement('div');
+    readerDiv.id = 'readerConductorIngreso';
+    readerDiv.style.cssText = 'width: 100%; max-width: 500px; margin: 20px auto;';
+    
+    const inputGroup = inputConductor.parentElement;
+    inputGroup.appendChild(readerDiv);
+  }
+  
+  const html5QrCode = new Html5Qrcode("readerConductorIngreso");
+  
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 150 } },
+    (decodedText) => {
+      console.log('✅ Código escaneado:', decodedText);
+      
+      html5QrCode.stop().then(() => {
+        const readerDiv = document.getElementById('readerConductorIngreso');
+        if (readerDiv) {
+          readerDiv.remove();
+        }
+        
+        if (inputConductor) {
+          inputConductor.style.display = 'block';
+          inputConductor.value = decodedText;
+          inputConductor.focus();
+        }
+        
+        buscarConductor();
+      });
+    },
+    (errorMessage) => {
+      // Ignorar errores de escaneo continuo
+    }
+  ).catch((err) => {
+    console.error('Error al iniciar cámara:', err);
+    mostrarAlerta('No se pudo acceder a la cámara', 'error');
+    if (inputConductor) {
+      inputConductor.style.display = 'block';
+    }
+  });
+}
 
-// Nueva función para confirmar conductor predeterminado
 async function confirmarConductorPredeterminado() {
   if (window.conductorPredeterminado && window.vehiculoEnProcesoSalida) {
     await registrarSalidaConVehiculo(window.conductorPredeterminado);
@@ -1069,10 +1122,13 @@ async function registrarIngreso(personaId, origen) {
 }
 
 function solicitarConductor(vehiculoId) {
-  console.log('👤 Solicitar conductor para vehículo:', vehiculoId);
+  console.log('👤 Solicitar conductor para INGRESO del vehículo:', vehiculoId);
   
   // Guardar el ID del vehículo en una variable global temporal
   window.vehiculoEnProceso = vehiculoId;
+  
+  // Obtener datos del propietario desde vehiculoActual
+  const propietarioData = window.vehiculoActual?.propietario_data;
   
   // Cambiar la UI para solicitar conductor
   elements.resultado.innerHTML = `
@@ -1081,29 +1137,60 @@ function solicitarConductor(vehiculoId) {
         <div class="resultado-icon">👤</div>
         <div>
           <h3>Identificar Conductor</h3>
-          <span class="badge badge-primary">Paso 2 de 2</span>
+          <span class="badge badge-primary">INGRESO</span>
         </div>
       </div>
       
       <div class="resultado-body">
+        ${propietarioData ? `
+          <div class="alert alert-success" style="margin-bottom: 16px;">
+            <span>⭐</span>
+            <div>
+              <strong>Propietario del vehículo:</strong><br>
+              ${propietarioData.nombre}<br>
+              <small>${propietarioData.nsa ? 'NSA: ' + propietarioData.nsa : ''} ${propietarioData.dni ? '| DNI: ' + propietarioData.dni : ''}</small>
+            </div>
+          </div>
+          
+          <div class="resultado-actions" style="margin-bottom: 16px;">
+            <button class="btn btn-success" onclick="buscarPropietarioConductor()">
+              ✅ Ingreso con ${propietarioData.nombre.split(' ')[0]}
+            </button>
+          </div>
+          
+          <div style="text-align: center; margin: 16px 0; color: #6B7280; font-size: 14px; font-weight: 600;">
+            - O identifica otro conductor -
+          </div>
+        ` : ''}
+        
         <div class="input-group">
-          <label for="inputConductor">Escanea NSA o DNI del conductor:</label>
+          <label for="inputConductor">Escanea o ingresa NSA/DNI del conductor:</label>
           <input 
             type="text" 
             id="inputConductor" 
             placeholder="Ej: 97778, 46025765"
             autocomplete="off"
-            style="text-align: center; text-transform: uppercase;"
+            style="text-align: center; text-transform: uppercase; padding: 12px; font-size: 16px;"
           >
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 12px;">
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            onclick="escanearConductorIngreso()"
+            style="flex: 1;">
+            📷 Escanear DNI/NSA
+          </button>
         </div>
       </div>
 
       <div class="resultado-actions">
-        <button class="btn btn-success" onclick="buscarConductor()">
+        <button class="btn" style="background: #4F46E5; color: white;" onclick="buscarConductor()">
           🔍 Buscar Conductor
         </button>
         <button class="btn" style="background: #6B7280; color: white;" onclick="limpiarResultado()">
-          ✕ Cancelar
+          ← Cancelar
         </button>
       </div>
     </div>
@@ -1111,18 +1198,52 @@ function solicitarConductor(vehiculoId) {
   
   // Enfocar el input
   setTimeout(() => {
-    document.getElementById('inputConductor').focus();
-    
-    // Permitir buscar con Enter
-    document.getElementById('inputConductor').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        buscarConductor();
-      }
-    });
+    const input = document.getElementById('inputConductor');
+    if (input) {
+      input.focus();
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          buscarConductor();
+        }
+      });
+    }
   }, 100);
 }
-// Busca esta función en tu archivo control-accesos.js (línea 834)
-// Reemplaza desde la línea 856 hasta la línea 881
+async function buscarPropietarioConductor() {
+  // Obtener datos del propietario desde vehiculoActual
+  const propietarioData = window.vehiculoActual?.propietario_data;
+  
+  if (!propietarioData) {
+    mostrarAlerta('No se encontró información del propietario. Por favor, escanea manualmente.', 'error');
+    return;
+  }
+  
+  try {
+    mostrarAlerta('Registrando ingreso con propietario...', 'info');
+    
+    // Usar los datos del propietario directamente
+    const conductorCompleto = {
+      tipo_resultado: 'persona',
+      origen: propietarioData.origen,
+      id: propietarioData.id,
+      nsa: propietarioData.nsa,
+      dni: propietarioData.dni,
+      nombre: propietarioData.nombre,
+      unidad: propietarioData.unidad,
+      activo: true,
+      vehiculos: [],
+      ingreso_activo: null
+    };
+    
+    // Registrar ingreso con el propietario como conductor
+    await registrarIngresoConVehiculo(conductorCompleto);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+
 
 async function buscarConductor() {
   try {
