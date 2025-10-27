@@ -128,16 +128,11 @@ function mostrarPersona(data) {
   const esTemporal = data.tipo_origen === 'temporal';
   
   // ✅ SI MODO RUTINAS ESTÁ ACTIVO: Procesar directamente sin preguntar
-  if (modoRutinasActivo) {
-    if (esSalida) {
-      // Registrar salida automáticamente
-      registrarIngreso(data.id, data.origen);
-    } else {
-      // Registrar ingreso automáticamente sin vehículo
-      registrarIngreso(data.id, data.origen);
-    }
-    return; // Salir de la función
-  }
+if (modoRutinasActivo) {
+  // Registrar automáticamente usando la función existente
+  registrarIngreso(data.id, data.origen);
+  return;
+}
   
   // ⬇️ FLUJO NORMAL (cuando modo rutinas NO está activo)
   
@@ -1254,7 +1249,7 @@ async function crearPersonaTemporal() {
     if (data.autoRegistrar && modoRutinasActivo) {
       // MODO RUTINAS: Registrar ingreso automáticamente
       setTimeout(() => {
-        registrarIngresoSinVehiculo(personaTemporal);
+        registrarIngreso(personaTemporal.id, personaTemporal.origen);
       }, 1000);
     } else {
       // MODO NORMAL: Mostrar opciones de ingreso (con/sin vehículo)
