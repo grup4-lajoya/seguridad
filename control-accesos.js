@@ -2413,7 +2413,14 @@ async function registrarIngresoTemporal() {
     mostrarAlerta('Registrando ingreso temporal...', 'info');
     
     const sesion = JSON.parse(localStorage.getItem('sesion'));
-    const idUsuario = sesion.usuario.id;
+    console.log('📝 Sesión completa:', sesion);
+
+if (!sesion || !sesion.usuario || !sesion.usuario.id) {
+  throw new Error('No se pudo obtener el ID del usuario. Por favor inicia sesión nuevamente.');
+}
+
+const idUsuario = sesion.usuario.id;
+console.log('👤 ID Usuario:', idUsuario);
     
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_TEMPORAL, {
       method: 'POST',
