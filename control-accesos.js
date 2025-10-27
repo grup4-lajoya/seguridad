@@ -119,8 +119,10 @@ function ocultarSpinner() {
 // MOSTRAR RESULTADOS
 // ============================================
 function mostrarPersona(data) {
-  console.log('👤 Mostrando persona:', data);
-  
+   console.log('👤 Mostrando persona:', data);
+  console.log('🚌 modoRutinasActivo:', modoRutinasActivo); // ← AGREGAR ESTA LÍNEA
+  console.log('🚌 typeof modoRutinasActivo:', typeof modoRutinasActivo); // ← Y ESTA
+    
   const tieneIngresoActivo = data.ingreso_activo !== null;
   const esSalida = tieneIngresoActivo;
   const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
