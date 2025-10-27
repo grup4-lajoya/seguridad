@@ -2412,16 +2412,47 @@ async function registrarIngresoTemporal() {
     
     mostrarAlerta('Registrando ingreso temporal...', 'info');
     
+    // Obtener sesión
     const sesion = JSON.parse(localStorage.getItem('sesion'));
     console.log('📝 Sesión completa:', sesion);
 
-if (!sesion || !sesion.usuario || !sesion.usuario.id) {
-  throw new Error('No se pudo obtener el ID del usuario. Por favor inicia sesión nuevamente.');
-}
+    if (!sesion || !sesion.usuario) {
+      throw new Error('No se pudo obtener datos del usuario. Por favor inicia sesión nuevamente.');
+    }
 
-const idUsuario = sesion.usuario.id;
-console.log('👤 ID Usuario:', idUsuario);
+    const nsa = sesion.usuario.nsa;
+    console.log('👤 NSA del usuario:', nsa);
+
+    if (!nsa) {
+      throw new Error('El usuario no tiene NSA registrado');
+    }
+
+    // Buscar el UUID del usuario en la tabla PERSONAL usando su NSA
+    console.log('🔍 Buscando UUID del usuario en tabla personal...');
     
+    const responseBuscar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: nsa,
+        tipo: 'nsa'
+      }),
+    });
+
+    const resultadoBuscar = await responseBuscar.json();
+    console.log('📦 Resultado búsqueda usuario:', resultadoBuscar);
+
+    if (!resultadoBuscar.success) {
+      throw new Error('No se encontró al usuario en la tabla personal. Contacte al administrador.');
+    }
+
+    const idUsuario = resultadoBuscar.data.id; // Este es el UUID de la tabla personal
+    console.log('✅ UUID del usuario encontrado:', idUsuario);
+    
+    // Registrar ingreso temporal
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_TEMPORAL, {
       method: 'POST',
       headers: {
@@ -2436,11 +2467,12 @@ console.log('👤 ID Usuario:', idUsuario);
         placa_vehiculo: placa || null,
         motivo_visita: motivo || null,
         autorizado_por: autorizado,
-        id_usuario: idUsuario
+        id_usuario: idUsuario  // Ahora es UUID correcto
       }),
     });
     
     const resultado = await response.json();
+    console.log('📦 Resultado registro temporal:', resultado);
     
     if (!resultado.success) {
       throw new Error(resultado.error || 'Error al registrar ingreso temporal');
@@ -2455,7 +2487,7 @@ console.log('👤 ID Usuario:', idUsuario);
     }, 2500);
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('❌ Error completo:', error);
     mostrarAlerta(error.message, 'error');
   }
 }
