@@ -1257,12 +1257,17 @@ async function crearPersonaTemporal() {
       setTimeout(() => {
         registrarIngreso(personaTemporal.id, personaTemporal.origen);
       }, 1000);
-      } else {
+       } else {
         // MODO NORMAL: Mostrar opciones de ingreso (con/sin vehículo)
         console.log('🔵 Llamando a mostrarPersona en 1 segundo...', modoRutinasActivo);
         setTimeout(() => {
           console.log('🔵 Ejecutando mostrarPersona ahora, modoRutinasActivo:', modoRutinasActivo);
           mostrarPersona(personaTemporal);
+          
+          // ✅ IMPORTANTE: Remover el focus de cualquier botón para evitar Enter accidental
+          setTimeout(() => {
+            document.activeElement?.blur();
+          }, 100);
         }, 1000);
       }
     
