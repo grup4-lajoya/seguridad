@@ -42,10 +42,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-   const btnEscaneoMasivo = document.getElementById('btnEscaneoMasivo');
-  if (btnEscaneoMasivo) {
-    btnEscaneoMasivo.addEventListener('click', iniciarEscaneoMasivo);
-  }
+
+  const btnModoRutinas = document.getElementById('btnModoRutinas');
+    if (btnModoRutinas) {
+      btnModoRutinas.addEventListener('click', toggleModoRutinas);
+    }
    verificarAuth();
   elements.inputCodigo.focus();
 });
