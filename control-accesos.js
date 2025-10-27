@@ -1114,12 +1114,10 @@ async function buscarCodigo(codigo) {
     const resultado = await response.json();
     console.log('📦 Resultado:', resultado);
     
-    // ✅ NUEVO: Manejar personas no encontradas (similar a vehículos temporales)
+    // ✅ Si no se encuentra Y es DNI/NSA, mostrar formulario temporal
     if (!resultado.success && (deteccion.tipo === 'dni' || deteccion.tipo === 'nsa')) {
-      console.log('⚠️ Persona no encontrada - Ofreciendo registro temporal');
-      
-      // Si está en modo rutinas, registrar automáticamente después de crear
-      solicitarDatosPersonaTemporal(deteccion.valor, deteccion.tipo, modoRutinasActivo);
+      console.log('⚠️ Persona no encontrada - Mostrando formulario temporal');
+      mostrarFormularioIngresoTemporal(deteccion.valor, deteccion.tipo);
       return;
     }
     
@@ -2272,6 +2270,182 @@ async function procesarPlacaSalidaTemporal() {
     }
     
     await registrarIngresoTemporalDirecto(window.personaActual.id, resultado.data.id, true);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+function mostrarFormularioIngresoTemporal(codigo, tipo) {
+  console.log('📝 Mostrando formulario de ingreso temporal');
+  
+  // Guardar código para uso posterior
+  window.codigoTemporal = codigo;
+  
+  elements.resultado.classList.remove('hidden');
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #F59E0B;">⚠️</div>
+        <div>
+          <h3>Persona No Autorizada</h3>
+          <span class="badge" style="background: #FEF3C7; color: #92400E;">INGRESO TEMPORAL</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-warning">
+          <span>⚠️</span>
+          <div>
+            <strong>${tipo.toUpperCase()}: ${codigo}</strong><br>
+            Esta persona no está registrada. Complete el formulario para autorizar el ingreso temporal.
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="inputNombreTemporal">Nombre completo: *</label>
+          <input 
+            type="text" 
+            id="inputNombreTemporal" 
+            placeholder="Ej: JUAN PÉREZ GARCÍA"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+            required
+          >
+        </div>
+        
+        <div class="input-group">
+          <label for="inputEmpresaTemporal">Empresa de procedencia:</label>
+          <input 
+            type="text" 
+            id="inputEmpresaTemporal" 
+            placeholder="Ej: CONTRATISTA XYZ"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+          >
+        </div>
+        
+        <div class="input-group">
+          <label for="inputMotivoTemporal">Motivo de visita:</label>
+          <input 
+            type="text" 
+            id="inputMotivoTemporal" 
+            placeholder="Ej: REUNIÓN, TRABAJO, ETC"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+          >
+        </div>
+        
+        <div class="input-group">
+          <label for="inputAutorizadoTemporal">Autorizado por: *</label>
+          <input 
+            type="text" 
+            id="inputAutorizadoTemporal" 
+            placeholder="Ej: SUPERVISOR GARCÍA"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+            required
+          >
+        </div>
+        
+        <div class="input-group">
+          <label for="inputPlacaTemporal">Placa del vehículo (opcional):</label>
+          <input 
+            type="text" 
+            id="inputPlacaTemporal" 
+            placeholder="Ej: ABC-123"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+          >
+        </div>
+        
+        <div class="alert alert-info" style="margin-top: 12px;">
+          <span>ℹ️</span>
+          <div>
+            <small>* Campos obligatorios</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="registrarIngresoTemporal()">
+          ✅ Registrar Ingreso Temporal
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="limpiarResultado()">
+          ← Cancelar
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Enfocar primer input
+  setTimeout(() => {
+    document.getElementById('inputNombreTemporal')?.focus();
+  }, 100);
+}
+
+async function registrarIngresoTemporal() {
+  try {
+    const nombre = document.getElementById('inputNombreTemporal')?.value.trim().toUpperCase();
+    const empresa = document.getElementById('inputEmpresaTemporal')?.value.trim().toUpperCase();
+    const motivo = document.getElementById('inputMotivoTemporal')?.value.trim().toUpperCase();
+    const autorizado = document.getElementById('inputAutorizadoTemporal')?.value.trim().toUpperCase();
+    const placa = document.getElementById('inputPlacaTemporal')?.value.trim().toUpperCase();
+    
+    // Validaciones
+    if (!nombre) {
+      mostrarAlerta('El nombre es obligatorio', 'error');
+      document.getElementById('inputNombreTemporal')?.focus();
+      return;
+    }
+    
+    if (nombre.length < 5) {
+      mostrarAlerta('El nombre debe tener al menos 5 caracteres', 'error');
+      return;
+    }
+    
+    if (!autorizado) {
+      mostrarAlerta('Debe indicar quién autorizó el ingreso', 'error');
+      document.getElementById('inputAutorizadoTemporal')?.focus();
+      return;
+    }
+    
+    mostrarAlerta('Registrando ingreso temporal...', 'info');
+    
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const idUsuario = sesion.usuario.id;
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_TEMPORAL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        dni: window.codigoTemporal,
+        nombre: nombre,
+        empresa_procedencia: empresa || null,
+        placa_vehiculo: placa || null,
+        motivo_visita: motivo || null,
+        autorizado_por: autorizado,
+        id_usuario: idUsuario
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error || 'Error al registrar ingreso temporal');
+    }
+    
+    mostrarAlerta('✅ Ingreso temporal registrado exitosamente', 'success');
+    
+    setTimeout(() => {
+      limpiarResultado();
+      elements.inputCodigo.value = '';
+      elements.inputCodigo.focus();
+    }, 2500);
     
   } catch (error) {
     console.error('❌ Error:', error);
