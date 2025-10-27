@@ -685,8 +685,18 @@ async function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPerson
             id="inputConductorSalida" 
             placeholder="Ej: 97778, 46025765"
             autocomplete="off"
-            style="text-align: center; text-transform: uppercase;"
+            style="text-align: center; text-transform: uppercase; padding: 12px; font-size: 16px;"
           >
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 12px;">
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            onclick="iniciarEscanerCodigo()"
+            style="flex: 1;">
+            📷 Escanear DNI/NSA
+          </button>
         </div>
       </div>
 
