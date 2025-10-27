@@ -119,10 +119,9 @@ function ocultarSpinner() {
 // MOSTRAR RESULTADOS
 // ============================================
 function mostrarPersona(data) {
-   console.log('👤 Mostrando persona:', data);
-  console.log('🚌 modoRutinasActivo:', modoRutinasActivo); // ← AGREGAR ESTA LÍNEA
-  console.log('🚌 typeof modoRutinasActivo:', typeof modoRutinasActivo); // ← Y ESTA
-    
+  console.log('👤 Mostrando persona:', data);
+  console.log('🚌 modoRutinasActivo:', modoRutinasActivo);
+  
   const tieneIngresoActivo = data.ingreso_activo !== null;
   const esSalida = tieneIngresoActivo;
   const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
@@ -130,16 +129,20 @@ function mostrarPersona(data) {
   const esTemporal = data.tipo_origen === 'temporal';
   
   // ✅ SI MODO RUTINAS ESTÁ ACTIVO: Procesar directamente sin preguntar
-  // ✅ SI MODO RUTINAS ESTÁ ACTIVO: Procesar directamente sin preguntar
   if (modoRutinasActivo === true) {
     console.log('🚌 MODO RUTINAS: Registrando automáticamente');
-    registrarIngreso(data.id, data.origen);
+    
+    if (esTemporal) {
+      registrarIngresoTemporalDirecto(data.id, null, false);
+    } else {
+      registrarIngreso(data.id, data.origen);
+    }
     return;
   }
 
-console.log('📋 MODO NORMAL: Mostrando opciones'); // ← Para confirmar que llega aquí
+  console.log('📋 MODO NORMAL: Mostrando opciones');
   
-  // ⬇️ FLUJO NORMAL (cuando modo rutinas NO está activo)
+  // ⬇️ FLUJO NORMAL
   
   let infoIngreso = '';
   if (esSalida && data.ingreso_activo) {
@@ -220,7 +223,7 @@ console.log('📋 MODO NORMAL: Mostrando opciones'); // ← Para confirmar que l
 
 ${esSalida ? `
   <!-- Es SALIDA -->
- ${tieneVehiculos ? `
+  ${tieneVehiculos || esTemporal ? `
   <div class="alert alert-info" style="margin: 16px 0;">
     <span>🚗</span>
     <div>
@@ -229,45 +232,69 @@ ${esSalida ? `
   </div>
   
   <div class="resultado-actions">
-    <button class="btn" style="background: #10B981; color: white;" onclick='solicitarPlacaSalidaWrapper()'>
-      ✅ Sí, con vehículo
-    </button>
-    <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
-      🚶 No, sin vehículo
-    </button>
+    ${esTemporal ? `
+      <button class="btn" style="background: #10B981; color: white;" onclick='solicitarPlacaSalidaTemporal()'>
+        ✅ Sí, con vehículo
+      </button>
+      <button class="btn" style="background: #EF4444; color: white;" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
+        🚶 No, sin vehículo
+      </button>
+    ` : `
+      <button class="btn" style="background: #10B981; color: white;" onclick='solicitarPlacaSalidaWrapper()'>
+        ✅ Sí, con vehículo
+      </button>
+      <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+        🚶 No, sin vehículo
+      </button>
+    `}
   </div>
   ` : `
     <div class="resultado-actions">
-      <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
-        🚪 Registrar Salida
-      </button>
+      ${esTemporal ? `
+        <button class="btn" style="background: #EF4444; color: white;" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
+          🚪 Registrar Salida
+        </button>
+      ` : `
+        <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+          🚪 Registrar Salida
+        </button>
+      `}
     </div>
   `}
-      ` : tieneVehiculos ? `
-        <!-- Es INGRESO con vehículos - Preguntar -->
-        <div class="alert alert-info" style="margin: 16px 0;">
-          <span>🚗</span>
-          <div>
-            <strong>¿Ingresó con su vehículo?</strong>
-          </div>
-        </div>
-        
-        <div class="resultado-actions">
-          <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
-            ✅ Sí, con vehículo
-          </button>
-          <button class="btn btn-primary" onclick="registrarIngreso('${data.id}', '${data.origen}')">
-            🚶 No, sin vehículo
-          </button>
-        </div>
-      ` : `
-        <!-- Es INGRESO sin vehículos - Botón simple -->
-        <div class="resultado-actions">
-          <button class="btn btn-success" onclick="registrarIngreso('${data.id}', '${data.origen}')">
-            ✅ Registrar Ingreso
-          </button>
-        </div>
-      `}
+` : `
+  <!-- Es INGRESO - SIEMPRE PREGUNTAR (para temporales y normales) -->
+  <div class="alert alert-info" style="margin: 16px 0;">
+    <span>🚗</span>
+    <div>
+      <strong>¿Ingresó con su vehículo?</strong>
+    </div>
+  </div>
+  
+  <div class="resultado-actions">
+    ${esTemporal ? `
+      <button class="btn btn-success" onclick='solicitarPlacaIngresoTemporal(${JSON.stringify(data)})'>
+        ✅ Sí, con vehículo
+      </button>
+      <button class="btn btn-primary" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
+        🚶 No, sin vehículo
+      </button>
+    ` : tieneVehiculos ? `
+      <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
+        ✅ Sí, con vehículo
+      </button>
+      <button class="btn btn-primary" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+        🚶 No, sin vehículo
+      </button>
+    ` : `
+      <button class="btn btn-success" onclick='solicitarPlacaIngreso(${JSON.stringify(data)})'>
+        ✅ Sí, con vehículo
+      </button>
+      <button class="btn btn-primary" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+        🚶 No, sin vehículo
+      </button>
+    `}
+  </div>
+`}
     </div>
   `;
   
@@ -2009,4 +2036,245 @@ function toggleModoRutinas() {
   
   // Limpiar y enfocar input
   limpiarResultado();
+}
+// Función para registrar ingreso temporal directo
+async function registrarIngresoTemporalDirecto(idPersona, idVehiculo, conVehiculo) {
+  try {
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const idUsuario = sesion.usuario.id;
+    
+    mostrarAlerta('Registrando...', 'info');
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_TEMPORAL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        id_persona: idPersona,
+        id_vehiculo: idVehiculo,
+        ingreso_con_vehiculo: conVehiculo,
+        id_usuario: idUsuario
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error || 'Error al registrar');
+    }
+    
+    const mensaje = resultado.accion === 'ingreso' 
+      ? '⚠️ Ingreso temporal registrado correctamente'
+      : '⚠️ Salida temporal registrada correctamente';
+    
+    mostrarAlerta(mensaje, 'warning');
+    
+    setTimeout(() => {
+      limpiarResultado();
+      elements.inputCodigo.value = '';
+      elements.inputCodigo.focus();
+    }, 2000);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+
+// Función para solicitar placa en ingreso temporal
+function solicitarPlacaIngresoTemporal(persona) {
+  console.log('🚗 Solicitando placa para ingreso temporal');
+  window.personaTemporal = persona;
+  
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #F59E0B;">🚗</div>
+        <div>
+          <h3>Identificar Vehículo</h3>
+          <span class="badge" style="background: #F59E0B; color: white;">TEMPORAL</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-warning">
+          <span>⚠️</span>
+          <div>
+            <strong>${persona.nombre}</strong><br>
+            Ingreso temporal con vehículo
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="inputPlacaTemporal">Placa del vehículo:</label>
+          <input 
+            type="text" 
+            id="inputPlacaTemporal" 
+            placeholder="Ej: ABC-123"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+          >
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="procesarPlacaIngresoTemporal()">
+          ✅ Continuar
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="mostrarPersona(window.personaTemporal)">
+          ← Volver
+        </button>
+      </div>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    const input = document.getElementById('inputPlacaTemporal');
+    if (input) {
+      input.focus();
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          procesarPlacaIngresoTemporal();
+        }
+      });
+    }
+  }, 100);
+}
+
+async function procesarPlacaIngresoTemporal() {
+  const input = document.getElementById('inputPlacaTemporal');
+  const placa = input?.value.trim().toUpperCase();
+  
+  if (!placa) {
+    mostrarAlerta('Por favor ingresa una placa', 'error');
+    return;
+  }
+  
+  try {
+    mostrarAlerta('Verificando vehículo...', 'info');
+    
+    // Buscar vehículo
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: placa,
+        tipo: 'placa'
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    let idVehiculo;
+    
+    if (!resultado.success) {
+      // Vehículo no existe, crear temporal
+      mostrarAlerta('Vehículo no encontrado, registrando como temporal...', 'info');
+      idVehiculo = await crearVehiculoTemporal(placa, window.personaTemporal);
+    } else {
+      idVehiculo = resultado.data.id;
+    }
+    
+    // Registrar ingreso temporal con vehículo
+    await registrarIngresoTemporalDirecto(window.personaTemporal.id, idVehiculo, true);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+
+// Función para solicitar placa en salida temporal
+function solicitarPlacaSalidaTemporal() {
+  console.log('🚗 Solicitando placa para salida temporal');
+  
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #EF4444;">🚗</div>
+        <div>
+          <h3>Salida con Vehículo</h3>
+          <span class="badge" style="background: #F59E0B; color: white;">TEMPORAL</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="input-group">
+          <label for="inputPlacaSalidaTemporal">Placa del vehículo:</label>
+          <input 
+            type="text" 
+            id="inputPlacaSalidaTemporal" 
+            placeholder="Ej: ABC-123"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+          >
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="procesarPlacaSalidaTemporal()">
+          ✅ Registrar Salida
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="mostrarPersona(window.personaActual)">
+          ← Volver
+        </button>
+      </div>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    const input = document.getElementById('inputPlacaSalidaTemporal');
+    if (input) {
+      input.focus();
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          procesarPlacaSalidaTemporal();
+        }
+      });
+    }
+  }, 100);
+}
+
+async function procesarPlacaSalidaTemporal() {
+  const input = document.getElementById('inputPlacaSalidaTemporal');
+  const placa = input?.value.trim().toUpperCase();
+  
+  if (!placa) {
+    mostrarAlerta('Por favor ingresa una placa', 'error');
+    return;
+  }
+  
+  try {
+    mostrarAlerta('Verificando vehículo...', 'info');
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: placa,
+        tipo: 'placa'
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error('Vehículo no encontrado');
+    }
+    
+    await registrarIngresoTemporalDirecto(window.personaActual.id, resultado.data.id, true);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
 }
