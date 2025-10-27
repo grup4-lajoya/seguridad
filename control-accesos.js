@@ -1,6 +1,7 @@
 // Elementos del DOM (se inicializan después de cargar el DOM)
 let html5QrCodeScanner = null;
 let elements = {};
+let modoRutinasActivo = false;
 
 // Esperar a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
@@ -118,38 +119,67 @@ function ocultarSpinner() {
 // MOSTRAR RESULTADOS
 // ============================================
 function mostrarPersona(data) {
-  const esForaneo = data.origen === 'foraneo';
-  const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
+  console.log('👤 Mostrando persona:', data);
+  
   const tieneIngresoActivo = data.ingreso_activo !== null;
   const esSalida = tieneIngresoActivo;
+  const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
+  const esForaneo = data.origen === 'foraneo';
+  const esTemporal = data.tipo_origen === 'temporal';
   
-  // Si es salida, mostrar info del ingreso
+  // ✅ SI MODO RUTINAS ESTÁ ACTIVO: Procesar directamente sin preguntar
+  if (modoRutinasActivo) {
+    if (esSalida) {
+      // Registrar salida automáticamente
+      registrarIngreso(data.id, data.origen);
+    } else {
+      // Registrar ingreso automáticamente sin vehículo
+      registrarIngreso(data.id, data.origen);
+    }
+    return; // Salir de la función
+  }
+  
+  // ⬇️ FLUJO NORMAL (cuando modo rutinas NO está activo)
+  
   let infoIngreso = '';
   if (esSalida && data.ingreso_activo) {
     const fechaIngreso = new Date(data.ingreso_activo.fecha_ingreso);
     const horaIngreso = fechaIngreso.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    const ingresoConVehiculo = data.ingreso_activo.ingreso_con_vehiculo;
     
     infoIngreso = `
-      <div class="alert alert-info" style="margin: 16px 0;">
+      <div class="alert alert-info" style="margin-top: 16px;">
         <span>ℹ️</span>
         <div>
-          <strong>Ingresó a las ${horaIngreso}</strong>
-         ${data.ingreso_activo.ingreso_original_con_vehiculo ? '<br>Con vehículo' : '<br>Sin vehículo'}
+          <strong>Ingresó a las ${horaIngreso}</strong><br>
+          ${ingresoConVehiculo ? '🚗 Ingresó con vehículo' : '🚶 Ingresó sin vehículo'}
         </div>
       </div>
     `;
   }
   
+  // ✅ Alerta especial si es temporal
+  const alertaTemporal = esTemporal ? `
+    <div class="alert alert-warning" style="margin-top: 16px;">
+      <span>⚠️</span>
+      <div>
+        <strong>REGISTRO TEMPORAL</strong><br>
+        Esta persona fue registrada temporalmente como no autorizada.
+      </div>
+    </div>
+  ` : '';
+  
   elements.resultado.innerHTML = `
     <div class="resultado-card">
       <div class="resultado-header">
-        <div class="resultado-icon">${esSalida ? '🚪' : '👤'}</div>
+        <div class="resultado-icon" style="background: ${esTemporal ? '#F59E0B' : (esSalida ? '#EF4444' : '#10B981')};">
+          ${esTemporal ? '⚠️' : (esSalida ? '🚪' : '👤')}
+        </div>
         <div>
           <h3>${data.nombre}</h3>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <span class="badge badge-${esForaneo ? 'warning' : 'primary'}">
-              ${esForaneo ? 'Personal Foráneo' : 'Personal'}
-            </span>
+            <span class="badge badge-primary">${esForaneo ? 'Foráneo' : 'Personal'}</span>
+            ${esTemporal ? '<span class="badge" style="background: #F59E0B; color: white;">⚠️ TEMPORAL</span>' : ''}
             <span class="badge" style="background: ${esSalida ? '#EF4444' : '#10B981'}; color: white;">
               ${esSalida ? '📤 SALIDA' : '📥 INGRESO'}
             </span>
@@ -184,6 +214,7 @@ function mostrarPersona(data) {
           </div>
         ` : ''}
         
+        ${alertaTemporal}
         ${infoIngreso}
       </div>
 
@@ -241,8 +272,9 @@ ${esSalida ? `
   `;
   
   elements.resultado.classList.remove('hidden');
-    window.personaActual = data;
+  window.personaActual = data;
 }
+
 function solicitarPlacaSalidaWrapper() {
   if (window.personaActual) {
     solicitarPlacaSalida(window.personaActual);
@@ -1022,7 +1054,6 @@ async function buscarCodigo(codigo) {
     ocultarAlerta();
     limpiarResultado();
     
-    // Si no se pasa código, tomarlo del input
     if (!codigo) {
       codigo = elements.inputCodigo.value.trim();
     }
@@ -1040,7 +1071,7 @@ async function buscarCodigo(codigo) {
       throw new Error('Código no reconocido. Debe ser NSA (5-6 dígitos), DNI (8 dígitos) o Placa (5-7 caracteres)');
     }
     
-    // Llamar a Edge Function SIN autorización
+    // Llamar a Edge Function
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
       method: 'POST',
       headers: {
@@ -1055,6 +1086,15 @@ async function buscarCodigo(codigo) {
     
     const resultado = await response.json();
     console.log('📦 Resultado:', resultado);
+    
+    // ✅ NUEVO: Manejar personas no encontradas (similar a vehículos temporales)
+    if (!resultado.success && (deteccion.tipo === 'dni' || deteccion.tipo === 'nsa')) {
+      console.log('⚠️ Persona no encontrada - Ofreciendo registro temporal');
+      
+      // Si está en modo rutinas, registrar automáticamente después de crear
+      solicitarDatosPersonaTemporal(deteccion.valor, deteccion.tipo, modoRutinasActivo);
+      return;
+    }
     
     if (!resultado.success) {
       throw new Error(resultado.error || 'No se encontró el código');
@@ -1072,6 +1112,163 @@ async function buscarCodigo(codigo) {
     mostrarAlerta(error.message, 'error');
   } finally {
     ocultarSpinner();
+  }
+}
+function solicitarDatosPersonaTemporal(codigo, tipo, autoRegistrar = false) {
+  console.log('📝 Solicitando datos para persona temporal...', { autoRegistrar });
+  
+  // Guardar en variable global para uso posterior
+  window.personaTemporalData = {
+    codigo: codigo,
+    tipo: tipo,
+    autoRegistrar: autoRegistrar
+  };
+  
+  elements.resultado.classList.remove('hidden');
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #F59E0B;">⚠️</div>
+        <div>
+          <h3>Persona No Autorizada</h3>
+          <span class="badge" style="background: #FEF3C7; color: #92400E;">REGISTRO TEMPORAL</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-warning">
+          <span>⚠️</span>
+          <div>
+            <strong>${tipo.toUpperCase()}: ${codigo}</strong><br>
+            Esta persona no está registrada en el sistema. ${autoRegistrar ? 'En modo rutinas' : 'Puedes'} crear un registro temporal para permitir el acceso.
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="inputNombreTemporal">Nombre completo de la persona:</label>
+          <input 
+            type="text" 
+            id="inputNombreTemporal" 
+            placeholder="Ej: JUAN PÉREZ GARCÍA"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+          >
+        </div>
+        
+        ${!autoRegistrar ? `
+          <div class="alert alert-info" style="margin-top: 12px;">
+            <span>ℹ️</span>
+            <div>
+              <small>Después de crear el registro, podrás seleccionar si ingresa con o sin vehículo.</small>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="crearPersonaTemporal()">
+          ✅ Crear Registro Temporal
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="limpiarResultado()">
+          ← Cancelar
+        </button>
+      </div>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    const input = document.getElementById('inputNombreTemporal');
+    if (input) {
+      input.focus();
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          crearPersonaTemporal();
+        }
+      });
+    }
+  }, 100);
+}
+
+async function crearPersonaTemporal() {
+  try {
+    const inputNombre = document.getElementById('inputNombreTemporal');
+    const nombre = inputNombre?.value.trim().toUpperCase();
+    
+    if (!nombre) {
+      mostrarAlerta('Por favor ingresa el nombre completo', 'error');
+      return;
+    }
+    
+    if (nombre.length < 5) {
+      mostrarAlerta('El nombre debe tener al menos 5 caracteres', 'error');
+      return;
+    }
+    
+    const data = window.personaTemporalData;
+    if (!data) {
+      mostrarAlerta('Error: No se encontraron los datos de la persona', 'error');
+      return;
+    }
+    
+    mostrarAlerta('Creando registro temporal...', 'info');
+    
+    // Crear persona temporal en la base de datos
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_PERSONA_TEMPORAL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        dni: data.codigo,
+        nombre: nombre
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(resultado.error || 'Error al crear registro temporal');
+    }
+    
+    console.log('✅ Persona temporal creada:', resultado.data);
+    
+    // Crear objeto persona compatible con el sistema
+    const personaTemporal = {
+      id: resultado.data.id,
+      dni: resultado.data.dni,
+      nsa: null,
+      nombre: resultado.data.nombre,
+      origen: 'foraneo',
+      origen_nombre: 'TEMPORAL - NO AUTORIZADO',
+      tipo_origen: 'temporal',
+      activo: true,
+      ingreso_activo: null,
+      vehiculos: []
+    };
+    
+    mostrarAlerta('✅ Registro temporal creado exitosamente', 'success');
+    
+    // Decidir flujo según contexto
+    if (data.autoRegistrar && modoRutinasActivo) {
+      // MODO RUTINAS: Registrar ingreso automáticamente
+      setTimeout(() => {
+        registrarIngresoSinVehiculo(personaTemporal);
+      }, 1000);
+    } else {
+      // MODO NORMAL: Mostrar opciones de ingreso (con/sin vehículo)
+      setTimeout(() => {
+        mostrarPersona(personaTemporal);
+      }, 1000);
+    }
+    
+    // Limpiar datos temporales
+    window.personaTemporalData = null;
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
   }
 }
 
@@ -1780,368 +1977,28 @@ function mostrarConfirmacionPlaca(textoDetectado, callback) {
     document.getElementById('placaConfirmada').select();
   }, 100);
 }
-// Variables globales para escaneo masivo
-let escaneoMasivoActivo = false;
-let personasEscaneadas = [];
-let ultimoCodigoEscaneado = null;
-let tiempoUltimoEscaneo = 0;
-
-function iniciarEscaneoMasivo() {
-  console.log('🚀 Iniciando escaneo masivo...');
+function toggleModoRutinas() {
+  modoRutinasActivo = !modoRutinasActivo;
   
-  escaneoMasivoActivo = true;
-  personasEscaneadas = [];
-  ultimoCodigoEscaneado = null;
-  tiempoUltimoEscaneo = 0;
+  const btnModoRutinas = document.getElementById('btnModoRutinas');
   
-  // Ocultar controles principales
-  elements.inputCodigo.parentElement.style.display = 'none';
-  elements.btnBuscar.style.display = 'none';
-  elements.btnLimpiar.style.display = 'none';
-  
-  // Mostrar interfaz de escaneo masivo
-  elements.resultado.classList.remove('hidden');
-  elements.resultado.innerHTML = `
-    <div class="resultado-card" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white;">
-      <div class="resultado-header" style="border-bottom-color: rgba(255,255,255,0.2);">
-        <div class="resultado-icon" style="background: rgba(255,255,255,0.2);">📸</div>
-        <div>
-          <h3 style="color: white;">ESCANEO MASIVO ACTIVO</h3>
-          <span class="badge" style="background: rgba(255,255,255,0.3); color: white;">
-            ✅ <span id="contadorMasivo">0</span> personas
-          </span>
-        </div>
-      </div>
-      
-      <div style="background: white; border-radius: 8px; padding: 12px; margin: 16px 0;">
-        <div id="readerMasivo" style="width: 100%;"></div>
-      </div>
-      
-      <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-        <p style="font-size: 13px; margin-bottom: 8px; opacity: 0.9;">
-          ℹ️ Escanea los códigos de forma continua. El sistema los procesará automáticamente.
-        </p>
-      </div>
-      
-      <div id="listaMasivo" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; margin-bottom: 16px;">
-        <p style="text-align: center; opacity: 0.7; font-size: 14px;">
-          Esperando escaneos...
-        </p>
-      </div>
-      
-      <button 
-        class="btn" 
-        style="background: white; color: #8B5CF6; font-weight: 700;"
-        onclick="detenerEscaneoMasivo()">
-        🛑 Finalizar Escaneo
-      </button>
-    </div>
-  `;
-  
-  // Iniciar escáner continuo
-  iniciarEscanerMasivo();
-}
-
-function iniciarEscanerMasivo() {
-  const html5QrCode = new Html5Qrcode("readerMasivo");
-  
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { 
-      fps: 10, 
-      qrbox: { width: 250, height: 150 },
-      aspectRatio: 1.777778
-    },
-    (decodedText) => {
-      if (!escaneoMasivoActivo) return;
-      
-      // Evitar escaneos duplicados muy rápidos (menos de 2 segundos)
-      const ahora = Date.now();
-      if (decodedText === ultimoCodigoEscaneado && (ahora - tiempoUltimoEscaneo) < 2000) {
-        console.log('⏭️ Código duplicado ignorado:', decodedText);
-        return;
-      }
-      
-      ultimoCodigoEscaneado = decodedText;
-      tiempoUltimoEscaneo = ahora;
-      
-      console.log('📸 Código escaneado en modo masivo:', decodedText);
-      procesarCodigoMasivo(decodedText);
-    },
-    (errorMessage) => {
-      // Ignorar errores de escaneo continuo
-    }
-  ).catch((err) => {
-    console.error('❌ Error al iniciar cámara:', err);
-    mostrarAlerta('No se pudo acceder a la cámara', 'error');
-    detenerEscaneoMasivo();
-  });
-  
-  // Guardar instancia para poder detenerla después
-  window.escanerMasivoActivo = html5QrCode;
-}
-
-async function procesarCodigoMasivo(codigo) {
-  const deteccion = detectarTipoCodigo(codigo);
-  
-  // Solo aceptar NSA o DNI (no placas)
-  if (deteccion.tipo === 'placa') {
-    agregarResultadoMasivo('❌ Placas no permitidas en modo masivo', 'error', codigo);
-    reproducirSonidoError();
-    return;
+  if (modoRutinasActivo) {
+    // Activar modo rutinas
+    btnModoRutinas.style.background = '#10B981';
+    btnModoRutinas.style.color = 'white';
+    btnModoRutinas.innerHTML = '✅ Modo Rutinas ACTIVO';
+    mostrarAlerta('🚌 Modo Rutinas activado: Los ingresos/salidas se procesarán automáticamente SIN vehículo', 'success');
+    console.log('✅ Modo Rutinas ACTIVADO');
+  } else {
+    // Desactivar modo rutinas
+    btnModoRutinas.style.background = '';
+    btnModoRutinas.style.color = '';
+    btnModoRutinas.className = 'btn btn-secondary';
+    btnModoRutinas.innerHTML = '🚌 Modo Rutinas';
+    mostrarAlerta('Modo Rutinas desactivado', 'info');
+    console.log('❌ Modo Rutinas DESACTIVADO');
   }
   
-  if (deteccion.tipo === 'desconocido') {
-    agregarResultadoMasivo('❌ Código no reconocido', 'error', codigo);
-    reproducirSonidoError();
-    return;
-  }
-  
-  try {
-    // Buscar persona
-    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        codigo: deteccion.valor,
-        tipo: deteccion.tipo
-      }),
-    });
-    
-    const resultado = await response.json();
-    
-    if (!resultado.success || resultado.data.tipo_resultado !== 'persona') {
-      agregarResultadoMasivo('❌ Persona no encontrada', 'error', codigo);
-      reproducirSonidoError();
-      return;
-    }
-    
-    const persona = resultado.data;
-    
-    // Verificar si ya fue escaneada en esta sesión
-    if (personasEscaneadas.find(p => p.id === persona.id)) {
-      agregarResultadoMasivo(`⚠️ ${persona.nombre} - Ya escaneado`, 'warning', codigo);
-      reproducirSonidoError();
-      return;
-    }
-    
-    // Verificar si tiene ingreso activo (es SALIDA)
-    if (persona.ingreso_activo) {
-      // Registrar SALIDA
-      await registrarSalidaMasivo(persona);
-      agregarResultadoMasivo(`✅ SALIDA: ${persona.nombre}`, 'success', codigo);
-      reproducirSonidoExito();
-    } else {
-      // Registrar INGRESO
-      await registrarIngresoMasivo(persona);
-      agregarResultadoMasivo(`✅ INGRESO: ${persona.nombre}`, 'success', codigo);
-      reproducirSonidoExito();
-    }
-    
-    // Agregar a la lista de escaneados
-    personasEscaneadas.push(persona);
-    actualizarContadorMasivo();
-    
-  } catch (error) {
-    console.error('❌ Error:', error);
-    agregarResultadoMasivo(`❌ Error: ${error.message}`, 'error', codigo);
-    reproducirSonidoError();
-  }
+  // Limpiar y enfocar input
+  limpiarResultado();
 }
-
-async function registrarIngresoMasivo(persona) {
-  const sesion = JSON.parse(localStorage.getItem('sesion'));
-  const idUsuario = sesion.usuario.id;
-  
-  const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-      'apikey': CONFIG.SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({
-      id_persona: persona.id,
-      tipo_persona: persona.origen,
-      id_usuario: idUsuario,
-      ingreso_con_vehiculo: false,
-      id_vehiculo: null
-    }),
-  });
-  
-  const resultado = await response.json();
-  
-  if (!resultado.success) {
-    throw new Error(resultado.error || 'Error al registrar ingreso');
-  }
-}
-
-async function registrarSalidaMasivo(persona) {
-  const sesion = JSON.parse(localStorage.getItem('sesion'));
-  const idUsuario = sesion.usuario.id;
-  
-  const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_SALIDA, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-      'apikey': CONFIG.SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({
-      id_ingreso: persona.ingreso_activo.id,
-      id_usuario: idUsuario
-    }),
-  });
-  
-  const resultado = await response.json();
-  
-  if (!resultado.success) {
-    throw new Error(resultado.error || 'Error al registrar salida');
-  }
-}
-
-function agregarResultadoMasivo(mensaje, tipo, codigo) {
-  const lista = document.getElementById('listaMasivo');
-  
-  // Si es el primer resultado, limpiar el mensaje inicial
-  if (lista.querySelector('p')) {
-    lista.innerHTML = '';
-  }
-  
-  const colores = {
-    success: 'background: rgba(16, 185, 129, 0.2); color: #10B981; border-left: 4px solid #10B981;',
-    error: 'background: rgba(239, 68, 68, 0.2); color: #EF4444; border-left: 4px solid #EF4444;',
-    warning: 'background: rgba(245, 158, 11, 0.2); color: #F59E0B; border-left: 4px solid #F59E0B;'
-  };
-  
-  const item = document.createElement('div');
-  item.style.cssText = `
-    ${colores[tipo]}
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    animation: slideIn 0.3s ease;
-  `;
-  
-  const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  item.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span>${mensaje}</span>
-      <span style="font-size: 11px; opacity: 0.7;">${hora}</span>
-    </div>
-    <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">${codigo}</div>
-  `;
-  
-  // Agregar al inicio de la lista
-  lista.insertBefore(item, lista.firstChild);
-  
-  // Limitar a 50 resultados
-  if (lista.children.length > 50) {
-    lista.removeChild(lista.lastChild);
-  }
-}
-
-function actualizarContadorMasivo() {
-  const contador = document.getElementById('contadorMasivo');
-  if (contador) {
-    contador.textContent = personasEscaneadas.length;
-  }
-}
-
-function detenerEscaneoMasivo() {
-  console.log('🛑 Deteniendo escaneo masivo...');
-  
-  escaneoMasivoActivo = false;
-  
-  // Detener escáner
-  if (window.escanerMasivoActivo) {
-    window.escanerMasivoActivo.stop().then(() => {
-      console.log('✅ Escáner detenido');
-    }).catch(err => {
-      console.error('Error al detener escáner:', err);
-    });
-  }
-  
-  // Mostrar resumen
-  mostrarResumenMasivo();
-}
-
-function mostrarResumenMasivo() {
-  elements.resultado.innerHTML = `
-    <div class="resultado-card">
-      <div class="resultado-header">
-        <div class="resultado-icon" style="background: #10B981;">✅</div>
-        <div>
-          <h3>Escaneo Masivo Finalizado</h3>
-          <span class="badge badge-primary">${personasEscaneadas.length} personas procesadas</span>
-        </div>
-      </div>
-      
-      <div class="resultado-body">
-        <div class="alert alert-success">
-          <span>✅</span>
-          <div>
-            <strong>Proceso completado exitosamente</strong><br>
-            Se procesaron ${personasEscaneadas.length} personas en total.
-          </div>
-        </div>
-        
-        ${personasEscaneadas.length > 0 ? `
-          <div style="margin-top: 16px;">
-            <strong style="font-size: 14px; color: #111827;">Personas procesadas:</strong>
-            <div style="margin-top: 8px; max-height: 200px; overflow-y: auto;">
-              ${personasEscaneadas.map(p => `
-                <div style="padding: 8px; background: #F3F4F6; border-radius: 6px; margin-bottom: 6px; font-size: 13px;">
-                  ${p.nombre}
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        ` : ''}
-      </div>
-      
-      <div class="resultado-actions">
-        <button class="btn btn-primary" onclick="limpiarResultado()">
-          ← Volver al inicio
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-// Funciones de sonido (opcionales)
-function reproducirSonidoExito() {
-  // Sonido corto de éxito
-  const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSmH0fPTgjMGHm7A7+OZURE');
-  audio.volume = 0.3;
-  audio.play().catch(() => {});
-}
-
-function reproducirSonidoError() {
-  // Sonido corto de error
-  const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSmH0fPTgjMGHm7A7+OZURE');
-  audio.volume = 0.2;
-  audio.play().catch(() => {});
-}
-
-// Agregar animación CSS
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-`;
-document.head.appendChild(style);
