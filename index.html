@@ -278,9 +278,8 @@
     <div class="card">
       <div class="header">
         <div class="logo">🔒</div>
-        <h1>Sistema de Seguridad</h1>
-        <p class="subtitle">Ingresa con tu NSA o DNI</p>
-      </div>
+        <h1>Aplicativo de Control de Accesos</h1>
+        </div>
 
       <!-- Alertas -->
       <div id="alert" class="hidden"></div>
@@ -288,17 +287,17 @@
       <!-- Paso 1: Solicitar OTP -->
       <form id="formIdentificador">
         <div class="form-group">
-          <label for="identificador">NSA o DNI</label>
+          <label for="identificador"></label>
           <input 
             type="text" 
             id="identificador" 
-            placeholder="Ingresa tu NSA o DNI"
+            placeholder="Ingresa nombre de usuario"
             autocomplete="off"
             required
           >
         </div>
         <button type="submit" id="btnSolicitarOTP">
-          Generar código de verificación
+          Ingresar
         </button>
       </form>
 
