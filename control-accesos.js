@@ -631,44 +631,11 @@ async function solicitarConductorSalida(vehiculoId, idPersonaIngreso, tipoPerson
     tipoPersonaIngreso
   };
   
-  // Mostrar pantalla de carga mientras buscamos al conductor
-  elements.resultado.innerHTML = `
-    <div class="resultado-card">
-      <div class="resultado-header">
-        <div class="resultado-icon">👤</div>
-        <div>
-          <h3>Cargando información...</h3>
-        </div>
-      </div>
-      <div class="resultado-body" style="text-align: center; padding: 40px;">
-        <div class="spinner" style="margin: 0 auto;"></div>
-      </div>
-    </div>
-  `;
+  // Obtener conductor desde los datos del vehículo que ya tenemos
+  const conductorQueIngreso = window.vehiculoActual?.conductor_data || null;
   
-  // Buscar los datos completos del conductor que ingresó
-  let conductorQueIngreso = null;
-  try {
-    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        codigo: idPersonaIngreso,
-        tipo: tipoPersonaIngreso === 'foraneo' ? 'dni' : 'nsa'
-      }),
-    });
-    
-    const resultado = await response.json();
-    if (resultado.success && resultado.data.tipo_resultado === 'persona') {
-      conductorQueIngreso = resultado.data;
-      window.conductorPredeterminado = conductorQueIngreso;
-    }
-  } catch (error) {
-    console.error('Error al buscar conductor:', error);
+  if (conductorQueIngreso) {
+    window.conductorPredeterminado = conductorQueIngreso;
   }
   
   // Mostrar pantalla con conductor pre-seleccionado
