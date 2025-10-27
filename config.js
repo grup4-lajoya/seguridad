@@ -18,6 +18,7 @@ EDGE_FUNCTIONS: {
   REGISTRAR_INGRESO_SALIDA: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/registrar-ingreso-salida',
   REGISTRAR_VEHICULO_TEMPORAL: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/registrar-vehiculo-temporal',
   REGISTRAR_PERSONA_TEMPORAL: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/registrar-persona-temporal',
+  REGISTRAR_INGRESO_TEMPORAL: 'https://qgbixgvidxeaoxxpyiyw.supabase.co/functions/v1/registrar-ingreso-temporal',  
   },
   
   // Configuración de la aplicación
