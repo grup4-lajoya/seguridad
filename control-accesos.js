@@ -126,7 +126,7 @@ function mostrarPersona(data) {
   const esSalida = tieneIngresoActivo;
   const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
   const esForaneo = data.origen === 'foraneo';
-  const esTemporal = data.tipo_origen === 'temporal';
+  const esTemporal = data.tipo_origen === 'temporal' || data.tipo_origen === 'ingreso_temporal';
   
   // ✅ SI MODO RUTINAS ESTÁ ACTIVO: Procesar directamente sin preguntar
   if (modoRutinasActivo === true) {
@@ -223,42 +223,45 @@ function mostrarPersona(data) {
 
 ${esSalida ? `
   <!-- Es SALIDA -->
-  ${tieneVehiculos || esTemporal ? `
-  <div class="alert alert-info" style="margin: 16px 0;">
-    <span>🚗</span>
-    <div>
-      <strong>¿Sale con vehículo?</strong>
+  ${esTemporal ? `
+    <!-- SALIDA TEMPORAL - Simple y directo -->
+    ${data.placa_vehiculo ? `
+      <div class="alert alert-warning" style="margin: 16px 0;">
+        <span>🚗</span>
+        <div>
+          <strong>Vehículo registrado:</strong> ${data.placa_vehiculo}
+        </div>
+      </div>
+    ` : ''}
+    
+    <div class="resultado-actions">
+      <button class="btn" style="background: #EF4444; color: white; font-size: 16px; padding: 14px;" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
+        🚪 Registrar Salida Temporal
+      </button>
     </div>
-  </div>
-  
-  <div class="resultado-actions">
-    ${esTemporal ? `
-      <button class="btn" style="background: #10B981; color: white;" onclick='solicitarPlacaSalidaTemporal()'>
-        ✅ Sí, con vehículo
-      </button>
-      <button class="btn" style="background: #EF4444; color: white;" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
-        🚶 No, sin vehículo
-      </button>
-    ` : `
+  ` : tieneVehiculos ? `
+    <!-- SALIDA NORMAL con vehículos -->
+    <div class="alert alert-info" style="margin: 16px 0;">
+      <span>🚗</span>
+      <div>
+        <strong>¿Sale con vehículo?</strong>
+      </div>
+    </div>
+    
+    <div class="resultado-actions">
       <button class="btn" style="background: #10B981; color: white;" onclick='solicitarPlacaSalidaWrapper()'>
         ✅ Sí, con vehículo
       </button>
       <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
         🚶 No, sin vehículo
       </button>
-    `}
-  </div>
+    </div>
   ` : `
+    <!-- SALIDA NORMAL sin vehículos -->
     <div class="resultado-actions">
-      ${esTemporal ? `
-        <button class="btn" style="background: #EF4444; color: white;" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
-          🚪 Registrar Salida
-        </button>
-      ` : `
-        <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
-          🚪 Registrar Salida
-        </button>
-      `}
+      <button class="btn" style="background: #EF4444; color: white;" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+        🚪 Registrar Salida
+      </button>
     </div>
   `}
 ` : `
@@ -2038,11 +2041,43 @@ function toggleModoRutinas() {
 // Función para registrar ingreso temporal directo
 async function registrarIngresoTemporalDirecto(idPersona, idVehiculo, conVehiculo) {
   try {
-    const sesion = JSON.parse(localStorage.getItem('sesion'));
-    const idUsuario = sesion.usuario.id;
+    if (!window.personaActual) {
+      throw new Error('No se encontró información de la persona');
+    }
+    
+    const persona = window.personaActual;
     
     mostrarAlerta('Registrando...', 'info');
     
+    // Obtener sesión y UUID del usuario
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    const nsa = sesion.usuario.nsa;
+    
+    if (!nsa) {
+      throw new Error('No se pudo obtener el NSA del usuario');
+    }
+    
+    // Buscar UUID del usuario en tabla personal
+    const responseBuscar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: nsa,
+        tipo: 'nsa'
+      }),
+    });
+    
+    const resultadoBuscar = await responseBuscar.json();
+    if (!resultadoBuscar.success) {
+      throw new Error('No se pudo obtener datos del usuario');
+    }
+    
+    const idUsuario = resultadoBuscar.data.id;
+    
+    // Registrar ingreso/salida temporal
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_TEMPORAL, {
       method: 'POST',
       headers: {
@@ -2051,9 +2086,12 @@ async function registrarIngresoTemporalDirecto(idPersona, idVehiculo, conVehicul
         'apikey': CONFIG.SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
-        id_persona: idPersona,
-        id_vehiculo: idVehiculo,
-        ingreso_con_vehiculo: conVehiculo,
+        dni: persona.dni,
+        nombre: persona.nombre,
+        empresa_procedencia: persona.empresa_procedencia || null,
+        placa_vehiculo: persona.placa_vehiculo || null,
+        motivo_visita: persona.motivo_visita || null,
+        autorizado_por: persona.autorizado_por || 'N/A',
         id_usuario: idUsuario
       }),
     });
@@ -2081,7 +2119,6 @@ async function registrarIngresoTemporalDirecto(idPersona, idVehiculo, conVehicul
     mostrarAlerta(error.message, 'error');
   }
 }
-
 // Función para solicitar placa en ingreso temporal
 function solicitarPlacaIngresoTemporal(persona) {
   console.log('🚗 Solicitando placa para ingreso temporal');
