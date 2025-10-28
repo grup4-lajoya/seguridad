@@ -80,19 +80,49 @@ function detectarTipoCodigo(codigo) {
 // FUNCIONES DE UI
 // ============================================
 function mostrarAlerta(mensaje, tipo = 'info') {
+  // Crear toast
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
+  
+  // Iconos según tipo
   const iconos = {
-    success: '✓',
-    error: '✕',
-    info: 'ℹ',
-    warning: '⚠'
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
   };
-
-  elements.alerta.className = `alert alert-${tipo}`;
-  elements.alerta.innerHTML = `
-    <span class="alert-icon">${iconos[tipo]}</span>
-    <div class="alert-content">${mensaje}</div>
+  
+  // Títulos según tipo
+  const titulos = {
+    success: 'Éxito',
+    error: 'Error',
+    warning: 'Advertencia',
+    info: 'Información'
+  };
+  
+  toast.innerHTML = `
+    <div class="toast-icon">${iconos[tipo]}</div>
+    <div class="toast-content">
+      <strong>${titulos[tipo]}</strong>
+      ${mensaje}
+    </div>
   `;
-  elements.alerta.classList.remove('hidden');
+  
+  // Agregar al contenedor
+  const container = document.getElementById('toastContainer');
+  if (container) {
+    container.appendChild(toast);
+  }
+  
+  // Auto-eliminar después de un tiempo
+  const duracion = tipo === 'error' ? 5000 : 3000; // Errores duran más
+  
+  setTimeout(() => {
+    toast.classList.add('closing');
+    setTimeout(() => {
+      toast.remove();
+    }, 300); // Tiempo de la animación
+  }, duracion);
 }
 
 function ocultarAlerta() {
