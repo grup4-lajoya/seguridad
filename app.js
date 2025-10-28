@@ -90,23 +90,21 @@ function mostrarFormOTPConCodigo(resultado) {
   
   iniciarTemporizador(CONFIG.APP.TIMEOUT_OTP)
   
-  // Mostrar información SIN el código visible
+  // Mostrar información COMPACTA
   mostrarAlerta(
     `<div style="text-align: center;">
-      <strong style="font-size: 18px;">✅ Código Generado Correctamente</strong>
-      
-      <div class="usuario-info" style="margin-top: 20px;">
-        <div style="margin-bottom: 12px; font-size: 15px;">
-          <strong>📋 Información del Usuario</strong>
-        </div>
-        <div style="margin: 8px 0;">👤 <strong>Nombre:</strong> ${resultado.usuario.nombre}</div>
-        <div style="margin: 8px 0;">🏢 <strong>Unidad:</strong> ${resultado.usuario.unidad || 'N/A'}</div>
-        <div style="margin: 8px 0;">📍 <strong>Puesto:</strong> ${resultado.usuario.puesto_servicio || 'N/A'}</div>
+      <div style="font-size: 16px; font-weight: 600; color: #059669; margin-bottom: 12px;">
+        ✅ Código Generado
       </div>
       
-      <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-radius: 8px; color: #1e40af; font-size: 14px; line-height: 1.6;">
-        <strong>🔒 Código de seguridad generado</strong><br>
-        Presiona <strong>"Verificar e Ingresar"</strong> para continuar
+      <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; border: 2px solid #3b82f6; text-align: left; font-size: 13px; line-height: 1.6;">
+        <div style="margin: 4px 0;"><strong>👤 ${resultado.usuario.nombre}</strong></div>
+        <div style="margin: 4px 0; color: #6b7280;">🏢 ${resultado.usuario.unidad || 'N/A'}</div>
+        <div style="margin: 4px 0; color: #6b7280;">📍 ${resultado.usuario.puesto_servicio || 'N/A'}</div>
+      </div>
+      
+      <div style="margin-top: 10px; font-size: 12px; color: #6b7280;">
+        Presiona <strong style="color: #4F46E5;">"Verificar e Ingresar"</strong>
       </div>
     </div>`,
     'success'
@@ -117,7 +115,6 @@ function mostrarFormOTPConCodigo(resultado) {
     elements.btnVerificarOTP.focus()
   }, 100)
 }
-
 
 function iniciarTemporizador(segundos) {
   state.tiempoRestante = segundos
