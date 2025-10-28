@@ -208,19 +208,20 @@
       margin: 10px 0;
     }
 
-    .usuario-info {
-      background: #f0f9ff;
-      padding: 15px;
-      border-radius: 8px;
-      border-left: 4px solid var(--primary);
-      margin: 15px 0;
-      font-size: 14px;
-      color: #1e40af;
-    }
-
-    .usuario-info strong {
-      color: #1e3a8a;
-    }
+       .usuario-info {
+        background: #f0f9ff;
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid #3b82f6;
+        margin: 15px 0;
+        font-size: 14px;
+        color: #1e40af;
+        text-align: left;
+      }
+      
+      .usuario-info strong {
+        color: #1e3a8a;
+      }
 
     .timer {
       text-align: center;
@@ -302,23 +303,13 @@
       </form>
 
       <!-- Paso 2: Verificar OTP -->
-      <form id="formOTP" class="hidden">
-        <div class="form-group">
-          <label for="codigo">Código de verificación</label>
-          <input 
-            type="text" 
-            id="codigo" 
-            class="otp-input"
-            placeholder="000000"
-            maxlength="6"
-            pattern="[0-9]{6}"
-            autocomplete="off"
-            required
-          >
-          <small style="display: block; margin-top: 8px; color: var(--gray-600);">
-            Ingresa el código mostrado arriba
-          </small>
-        </div>
+       <form id="formOTP" class="hidden">
+        <!-- Input oculto pero funcional -->
+        <input 
+          type="hidden" 
+          id="codigo"
+          value=""
+        >
         <button type="submit" id="btnVerificarOTP">
           Verificar e ingresar
         </button>
