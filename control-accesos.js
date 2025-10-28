@@ -1747,53 +1747,21 @@ async function procesarSalidaConVehiculo() {
     let vehiculoId = null;
     let placa = null;
     
-// Prioridad 1: Si seleccionó un vehículo del dropdown
-if (selectVehiculo && selectVehiculo.value) {
-  vehiculoId = selectVehiculo.value; // Sin parseInt, es un UUID string
-  
-  // Buscar la placa del vehículo seleccionado
-  const vehiculoSeleccionado = window.personaSalida.vehiculos.find(v => v.id === vehiculoId);
-  if (vehiculoSeleccionado) {
-    placa = vehiculoSeleccionado.placa;
-  }
-  
-  if (!placa) {
-    throw new Error('No se pudo obtener la placa del vehículo seleccionado');
-  }
-  
-  // ✅ VALIDAR: Verificar que el vehículo esté dentro (buscar por placa)
-  mostrarAlerta('Verificando vehículo...', 'info');
-  
-  const responseVerificar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-      'apikey': CONFIG.SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({
-      codigo: placa,
-      tipo: 'placa'
-    }),
-  });
-  
-  const resultadoVerificar = await responseVerificar.json();
-  
-  if (!resultadoVerificar.success) {
-    throw new Error(`No se pudo verificar el vehículo ${placa}`);
-  }
-  
-  // ⚠️ VALIDAR QUE EL VEHÍCULO ESTÉ DENTRO
-  if (!resultadoVerificar.data.ingreso_activo) {
-    throw new Error(`El vehículo ${placa} no está dentro de las instalaciones. No puede salir con un vehículo que no ha ingresado.`);
-  }
-  
-  // Si todo está bien, actualizar el vehiculoId con el del resultado
-  vehiculoId = resultadoVerificar.data.id;
-}
-    // Prioridad 2: Si ingresó una placa manualmente
-    else if (inputPlaca && inputPlaca.value.trim()) {
+    // ✅ PRIORIDAD 1: Si ingresó una placa manualmente (tiene MAYOR prioridad)
+    if (inputPlaca && inputPlaca.value.trim()) {
       placa = inputPlaca.value.trim().toUpperCase();
+      console.log('📝 Usando placa ingresada manualmente:', placa);
+    }
+    // PRIORIDAD 2: Si seleccionó un vehículo del dropdown
+    else if (selectVehiculo && selectVehiculo.value) {
+      vehiculoId = selectVehiculo.value;
+      
+      // Buscar la placa del vehículo seleccionado
+      const vehiculoSeleccionado = window.personaSalida.vehiculos.find(v => v.id === vehiculoId);
+      if (vehiculoSeleccionado) {
+        placa = vehiculoSeleccionado.placa;
+        console.log('📝 Usando vehículo del dropdown:', placa);
+      }
     }
     
     // Validar que se haya seleccionado o ingresado algo
@@ -1802,42 +1770,45 @@ if (selectVehiculo && selectVehiculo.value) {
       return;
     }
     
-    mostrarAlerta('Procesando salida...', 'info');
+    mostrarAlerta('Verificando vehículo...', 'info');
     
-    // Si se ingresó placa manualmente, buscar el vehículo
-    if (!vehiculoId && placa) {
-      const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-          'apikey': CONFIG.SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          codigo: placa,
-          tipo: 'placa'
-        }),
-      });
-      
-      const resultado = await response.json();
-      
-      if (!resultado.success) {
-        throw new Error(`Vehículo con placa ${placa} no encontrado en el sistema`);
-      }
-      
-      if (resultado.data.tipo_resultado !== 'vehiculo') {
-        throw new Error('El código ingresado no corresponde a un vehículo');
-      }
-      
-      // ⚠️ VALIDAR QUE EL VEHÍCULO ESTÉ DENTRO
-      if (!resultado.data.ingreso_activo) {
-        throw new Error(`El vehículo ${placa} no está dentro de las instalaciones. Debe ingresar primero.`);
-      }
-      
-      vehiculoId = resultado.data.id;
+    // ✅ BUSCAR Y VALIDAR EL VEHÍCULO (ya sea del dropdown o ingresado manualmente)
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: placa,
+        tipo: 'placa'
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(`Vehículo con placa ${placa} no encontrado en el sistema`);
     }
     
+    if (resultado.data.tipo_resultado !== 'vehiculo') {
+      throw new Error('El código ingresado no corresponde a un vehículo');
+    }
+    
+    // ⚠️ VALIDAR QUE EL VEHÍCULO ESTÉ DENTRO
+    if (!resultado.data.ingreso_activo) {
+      throw new Error(`El vehículo ${placa} no está dentro de las instalaciones. No puede salir con un vehículo que no ha ingresado.`);
+    }
+    
+    // Usar el ID del vehículo encontrado
+    vehiculoId = resultado.data.id;
+    
+    console.log('✅ Vehículo validado:', placa, 'ID:', vehiculoId);
+    
     // Registrar salida con vehículo
+    mostrarAlerta('Procesando salida...', 'info');
+    
     const sesion = JSON.parse(localStorage.getItem('sesion'));
     const idUsuario = sesion.usuario.id;
     
