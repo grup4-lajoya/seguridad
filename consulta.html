@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta - Sistema de Seguridad</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      padding: 40px;
+      text-align: center;
+    }
+
+    .icon {
+      width: 100px;
+      height: 100px;
+      background: #4F46E5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 50px;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #111827;
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 16px;
+      color: #6B7280;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .warning {
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: #4F46E5;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #4338CA;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="icon">📊</div>
+      <h1>Módulo de Consulta</h1>
+      <p>
+        Este módulo te permitirá consultar el personal que se encuentra dentro o fuera de la unidad en tiempo real.
+      </p>
+      <div class="warning">
+        🚧 <strong>En desarrollo</strong><br>
+        Este módulo estará disponible próximamente
+      </div>
+      <a href="dashboard.html" class="btn">← Volver al Dashboard</a>
+    </div>
+  </div>
+</body>
+</html>
