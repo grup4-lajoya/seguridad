@@ -294,8 +294,21 @@ ${esSalida ? `
       </button>
     </div>
   `}
-` : `
+  ` : `
   <!-- Es INGRESO - SIEMPRE PREGUNTAR (para temporales y normales) -->
+  
+  ${data.visita_autorizada ? `
+    <!-- VISITA AUTORIZADA -->
+    <div class="alert alert-success" style="margin: 16px 0;">
+      <span>✅</span>
+      <div>
+        <strong>Visita Autorizada</strong><br>
+        Válida del ${formatearFecha(data.visita_autorizada.fec_inicio)} al ${formatearFecha(data.visita_autorizada.fec_fin)}
+        ${data.visita_autorizada.motivo ? `<br>Motivo: ${data.visita_autorizada.motivo}` : ''}
+      </div>
+    </div>
+  ` : ''}
+  
   <div class="alert alert-info" style="margin: 16px 0;">
     <span>🚗</span>
     <div>
@@ -305,6 +318,15 @@ ${esSalida ? `
   
   <div class="resultado-actions">
     ${esTemporal ? `
+      <!-- TEMPORAL: Ingreso temporal -->
+      <button class="btn btn-success" onclick='solicitarPlacaIngresoTemporal(${JSON.stringify(data)})'>
+        ✅ Sí, con vehículo
+      </button>
+      <button class="btn btn-primary" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
+        🚶 No, sin vehículo
+      </button>
+    ` : (data.origen === 'foraneo' && !data.visita_autorizada) ? `
+      <!-- FORÁNEO SIN VISITA AUTORIZADA: Ingreso temporal -->
       <button class="btn btn-success" onclick='solicitarPlacaIngresoTemporal(${JSON.stringify(data)})'>
         ✅ Sí, con vehículo
       </button>
@@ -312,6 +334,7 @@ ${esSalida ? `
         🚶 No, sin vehículo
       </button>
     ` : tieneVehiculos ? `
+      <!-- TIENE VEHÍCULOS REGISTRADOS: Ingreso normal -->
       <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
         ✅ Sí, con vehículo
       </button>
@@ -319,6 +342,7 @@ ${esSalida ? `
         🚶 No, sin vehículo
       </button>
     ` : `
+      <!-- NO TIENE VEHÍCULOS: Ingreso normal pero solicitar placa -->
       <button class="btn btn-success" onclick='solicitarPlacaIngreso(${JSON.stringify(data)})'>
         ✅ Sí, con vehículo
       </button>
@@ -1878,7 +1902,18 @@ async function procesarSalidaConVehiculo() {
     mostrarAlerta(error.message, 'error');
   }
 }
-
+// ============================================
+// FUNCIÓN AUXILIAR PARA FORMATEAR FECHAS
+// ============================================
+function formatearFecha(fecha) {
+  if (!fecha) return 'N/A';
+  const date = new Date(fecha);
+  return date.toLocaleDateString('es-PE', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+}
 // ============================================
 // VERIFICAR AUTENTICACIÓN
 // ============================================
