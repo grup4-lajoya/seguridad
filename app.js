@@ -27,35 +27,53 @@ let state = {
 // ============================================
 // FUNCIONES DE UI
 // ============================================
+// ============================================
+// MOSTRAR ALERTAS (SISTEMA DE TOASTS)
+// ============================================
 function mostrarAlerta(mensaje, tipo = 'info') {
-  const iconos = {
-    success: '✓',
-    error: '✕',
-    info: 'ℹ',
-  }
-
-  elements.alert.className = `alert alert-${tipo}`
-  elements.alert.innerHTML = `<span>${iconos[tipo]}</span><div>${mensaje}</div>`
-  elements.alert.classList.remove('hidden')
+  // Crear toast
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
   
-  // Si es un error de dispositivo, agregar botón para copiar
-  if (tipo === 'error' && mensaje.includes('Código del dispositivo')) {
-    setTimeout(() => {
-      const alertDiv = elements.alert.querySelector('div')
-      const btnCopiar = document.createElement('button')
-      btnCopiar.textContent = '📋 Copiar código'
-      btnCopiar.style.cssText = 'margin-top: 15px; padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;'
-      btnCopiar.onclick = () => {
-        navigator.clipboard.writeText(state.deviceFingerprint).then(() => {
-          btnCopiar.textContent = '✓ Copiado!'
-          setTimeout(() => {
-            btnCopiar.textContent = '📋 Copiar código'
-          }, 2000)
-        })
-      }
-      alertDiv.appendChild(btnCopiar)
-    }, 100)
+  // Iconos según tipo
+  const iconos = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+  
+  // Títulos según tipo
+  const titulos = {
+    success: 'Éxito',
+    error: 'Error',
+    warning: 'Advertencia',
+    info: 'Información'
+  };
+  
+  toast.innerHTML = `
+    <div class="toast-icon">${iconos[tipo]}</div>
+    <div class="toast-content">
+      <strong>${titulos[tipo]}</strong>
+      ${mensaje}
+    </div>
+  `;
+  
+  // Agregar al contenedor
+  const container = document.getElementById('toastContainer');
+  if (container) {
+    container.appendChild(toast);
   }
+  
+  // Auto-eliminar después de un tiempo
+  const duracion = tipo === 'error' ? 5000 : 3000; // Errores duran más
+  
+  setTimeout(() => {
+    toast.classList.add('closing');
+    setTimeout(() => {
+      toast.remove();
+    }, 300); // Tiempo de la animación
+  }, duracion);
 }
 
 function ocultarAlerta() {
