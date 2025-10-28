@@ -81,43 +81,43 @@ function mostrarFormIdentificador() {
   detenerTemporizador()
   ocultarAlerta()
 }
-
 function mostrarFormOTPConCodigo(resultado) {
   elements.formIdentificador.classList.add('hidden')
   elements.formOTP.classList.remove('hidden')
   
-  // Auto-completar el código
+  // Auto-completar el código (oculto)
   elements.codigo.value = resultado.codigo
-  elements.codigo.focus()
   
   iniciarTemporizador(CONFIG.APP.TIMEOUT_OTP)
   
-  // Mostrar información completa del código
+  // Mostrar información SIN el código visible
   mostrarAlerta(
     `<div style="text-align: center;">
-      <strong style="font-size: 16px;">✅ Código generado correctamente</strong>
+      <strong style="font-size: 18px;">✅ Código Generado Correctamente</strong>
       
-      <div class="codigo-display">
-        <div style="font-size: 14px; opacity: 0.9;">Tu código de acceso es:</div>
-        <div class="codigo-numero">${resultado.codigo}</div>
-        <div style="font-size: 12px; opacity: 0.8;">⏰ Válido por 10 minutos</div>
+      <div class="usuario-info" style="margin-top: 20px;">
+        <div style="margin-bottom: 12px; font-size: 15px;">
+          <strong>📋 Información del Usuario</strong>
+        </div>
+        <div style="margin: 8px 0;">👤 <strong>Nombre:</strong> ${resultado.usuario.nombre}</div>
+        <div style="margin: 8px 0;">🏢 <strong>Unidad:</strong> ${resultado.usuario.unidad || 'N/A'}</div>
+        <div style="margin: 8px 0;">📍 <strong>Puesto:</strong> ${resultado.usuario.puesto_servicio || 'N/A'}</div>
       </div>
       
-      <div class="usuario-info">
-        <div style="margin-bottom: 8px;"><strong>Información del usuario:</strong></div>
-        <div>👤 Nombre: <strong>${resultado.usuario.nombre}</strong></div>
-        <div>🏢 Unidad: <strong>${resultado.usuario.unidad || 'N/A'}</strong></div>
-        <div>📍 Puesto: <strong>${resultado.usuario.puesto_servicio || 'N/A'}</strong></div>
-      </div>
-      
-      <div style="margin-top: 15px; color: #6b7280; font-size: 13px; line-height: 1.5;">
-        El código ya está ingresado automáticamente.<br>
-        Solo haz clic en <strong>"Verificar e ingresar"</strong>
+      <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-radius: 8px; color: #1e40af; font-size: 14px; line-height: 1.6;">
+        <strong>🔒 Código de seguridad generado</strong><br>
+        Presiona <strong>"Verificar e Ingresar"</strong> para continuar
       </div>
     </div>`,
     'success'
   )
+  
+  // Auto-focus en el botón de verificar
+  setTimeout(() => {
+    elements.btnVerificarOTP.focus()
+  }, 100)
 }
+
 
 function iniciarTemporizador(segundos) {
   state.tiempoRestante = segundos
@@ -353,8 +353,9 @@ elements.formOTP.addEventListener('submit', async (e) => {
   
   const codigo = elements.codigo.value.trim()
   
-  if (!codigo || codigo.length !== 6) {
-    mostrarAlerta('El código debe tener 6 dígitos', 'error')
+  // Validación simple ya que el código se auto-completa
+  if (!codigo) {
+    mostrarAlerta('Error: No se detectó código de verificación', 'error')
     return
   }
 
@@ -400,11 +401,6 @@ elements.formOTP.addEventListener('submit', async (e) => {
 
 elements.btnVolver.addEventListener('click', () => {
   mostrarFormIdentificador()
-})
-
-// Solo permitir números en el campo de código
-elements.codigo.addEventListener('input', (e) => {
-  e.target.value = e.target.value.replace(/\D/g, '')
 })
 
 // ============================================
