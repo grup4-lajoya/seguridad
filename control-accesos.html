@@ -25,45 +25,30 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: linear-gradient(180deg, #1B4F8C 0%, #2E6FA8 100%);
   min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 0;
+  padding: 5px;
   margin: 0;
-  overflow-x: hidden;
+  overflow: hidden;
 }
-        /* Header superior azul oscuro */
- .app-header {
-  background: #003D82;
-  color: white;
-  padding: 10px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-}
-    
- .app-header h1 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-  .container {
+.container {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 5px;
+  padding: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
-   .card {
+.card {
   background: white;
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 12px;
   text-align: center;
   flex: 1;
   display: flex;
@@ -72,7 +57,7 @@ body {
   min-height: 0;
 }
 .header {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 
@@ -88,13 +73,13 @@ body {
       font-size: 50px;
     }
 
- h1 {
-  font-size: 18px;
+h1 {
+  font-size: 16px;
   color: #003D82;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
     .subtitle {
@@ -103,10 +88,11 @@ body {
     }
 
     /* Estilos para input y resultados */
-    .input-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
+   .input-group {
+  margin-bottom: 10px;
+  text-align: left;
+  flex-shrink: 0;
+}
 
     .input-group label {
       display: block;
@@ -137,12 +123,12 @@ body {
 
 .scan-button {
   width: 100%;
-  padding: 18px;
+  padding: 12px;
   background: var(--success);
   color: white;
   border: none;
   border-radius: 12px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -151,7 +137,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .scan-button:hover {
@@ -170,18 +157,20 @@ body {
       transform: none;
     }
 
-    .back-button {
-      width: 100%;
-      padding: 14px;
-      background: transparent;
-      color: #6B7280;
-      border: 2px solid #E5E7EB;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+   .back-button {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: #6B7280;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-top: 8px !important;
+}
 
     .back-button:hover {
       background: #F3F4F6;
@@ -237,14 +226,15 @@ body {
       flex: 1;
     }
 
-    .resultado-card {
+  .resultado-card {
   background: #f8f9fa;
   border: none;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
   text-align: left;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
 }
 
     .resultado-header {
@@ -638,18 +628,76 @@ body {
     padding: 8px;
   }
 }
+    /* Forzar contenido visible en móvil */
+@media (max-width: 640px) {
+  body {
+    height: 100vh;
+    padding: 3px;
+  }
+  
+  .card {
+    padding: 10px;
+    height: 100%;
+  }
+  
+  .header {
+    margin-bottom: 6px;
+  }
+  
+  h1 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  
+  .input-group {
+    margin-bottom: 8px;
+  }
+  
+  .input-group label {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .input-group input {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .scan-button {
+    padding: 10px;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .btn {
+    padding: 8px;
+    font-size: 13px;
+  }
+  
+  .back-button {
+    padding: 8px;
+    font-size: 13px;
+    margin-top: 6px !important;
+  }
+  
+  .resultado-card {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  
+  .alert {
+    padding: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+}
   </style>
 </head>
 <body>
   <!-- Contenedor de notificaciones flotantes -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Header superior -->
-  <div class="app-header">
-    <h1>ACCESOS</h1>
-  </div>
-
-  <div class="container">
+<div class="container">
     <div class="card">
       <div class="header">
       <!--  <div class="icon">🔍</div> -->
