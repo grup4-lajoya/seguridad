@@ -21,7 +21,7 @@
   --success-hover: #1B5E20; /* Verde más oscuro para hover */
 }
 
-    body {
+body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: linear-gradient(180deg, #1B4F8C 0%, #2E6FA8 100%);
   min-height: 100vh;
@@ -29,6 +29,7 @@
   flex-direction: column;
   padding: 0;
   margin: 0;
+  overflow-x: hidden;
 }
         /* Header superior azul oscuro */
    .app-header {
@@ -46,26 +47,44 @@
       letter-spacing: 2px;
     }
 
-       .container {
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
+      .container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-        .card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      padding: 32px;
-      text-align: center;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
+     .card {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  margin-top: auto;
+}
+    /* Header superior más compacto en móvil */
+.app-header {
+  background: #003D82;
+  color: white;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
 
     .header {
       margin-bottom: 40px;
@@ -379,21 +398,78 @@
       to { transform: rotate(360deg); }
     }
 
-    @media (max-width: 640px) {
-      .card {
-        padding: 24px;
-      }
+ @media (max-width: 640px) {
+  body {
+    padding: 0;
+  }
+  
+  .container {
+    padding: 0;
+    max-width: 100%;
+  }
+  
+  .card {
+    padding: 16px;
+    border-radius: 16px 16px 0 0;
+    margin-top: 0;
+  }
 
-      h1 {
-        font-size: 24px;
-      }
+  .header {
+    margin-bottom: 12px;
+  }
 
-      .icon {
-        width: 80px;
-        height: 80px;
-        font-size: 40px;
-      }
-    }
+  h1 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .icon {
+    width: 60px;
+    height: 60px;
+    font-size: 32px;
+  }
+  
+  .input-group {
+    margin-bottom: 10px;
+  }
+  
+  .input-group label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  
+  .input-group input {
+    padding: 10px;
+    font-size: 14px;
+  }
+  
+  .scan-button {
+    padding: 14px;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  
+  .btn {
+    padding: 10px;
+    font-size: 14px;
+  }
+  
+  .back-button {
+    padding: 10px;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  
+  /* Botones más compactos */
+  .input-group + div {
+    gap: 8px !important;
+  }
+  
+  .btn-primary, .btn-secondary {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
     /* ============================================ */
 /* AJUSTES PARA PANTALLA COMPLETA SIN SCROLL */
 /* ============================================ */
@@ -680,6 +756,29 @@ h1 {
   }
   50% {
     box-shadow: 0 4px 24px rgba(255, 160, 0, 0.8);
+  }
+}
+    /* Optimización para pantallas pequeñas */
+@media (max-height: 700px) {
+  .card {
+    padding: 12px;
+  }
+  
+  .header {
+    margin-bottom: 8px;
+  }
+  
+  .input-group {
+    margin-bottom: 8px;
+  }
+  
+  .scan-button {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .btn {
+    padding: 8px;
   }
 }
   </style>
