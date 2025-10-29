@@ -25,11 +25,23 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: linear-gradient(180deg, #1B4F8C 0%, #2E6FA8 100%);
   min-height: 100vh;
-  height: 100vh;
   display: flex;
   flex-direction: column;
   padding: 5px;
   margin: 0;
+  overflow-x: hidden;
+}
+
+/* Modo centrado (por defecto) */
+body.modo-centrado {
+  height: 100vh;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Modo resultado (cuando hay resultados) */
+body.modo-resultado {
+  height: 100vh;
   overflow: hidden;
 }
 .container {
@@ -37,9 +49,18 @@ body {
   max-width: 600px;
   margin: 0 auto;
   padding: 0;
-  flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+/* Modo centrado */
+body.modo-centrado .container {
+  flex: 0;
+}
+
+/* Modo resultado */
+body.modo-resultado .container {
+  flex: 1;
   min-height: 0;
   overflow: hidden;
 }
@@ -48,13 +69,23 @@ body {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 12px;
+  padding: 16px;
   text-align: center;
-  flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+/* Modo centrado - tamaño automático */
+body.modo-centrado .card {
+  overflow-y: visible;
+}
+
+/* Modo resultado - ocupar todo el espacio */
+body.modo-resultado .card {
+  flex: 1;
   overflow-y: auto;
   min-height: 0;
+  padding: 12px;
 }
 .header {
   margin-bottom: 8px;
