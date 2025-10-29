@@ -637,6 +637,51 @@ h1 {
     max-width: 100%;
   }
 }
+    /* ============================================ */
+/* BOTÓN DE FLASH EN ESCÁNER */
+/* ============================================ */
+#reader {
+  position: relative;
+}
+
+.btn-flash {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: 2px solid white;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-flash:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.05);
+}
+
+.btn-flash.active {
+  background: #FFA000;
+  border-color: #FFA000;
+  box-shadow: 0 4px 16px rgba(255, 160, 0, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(255, 160, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 4px 24px rgba(255, 160, 0, 0.8);
+  }
+}
   </style>
 </head>
 <body>
