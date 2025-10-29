@@ -13,22 +13,22 @@
       box-sizing: border-box;
     }
 
-    :root {
-      --primary: #4F46E5;
-      --success: #10B981;
-      --error: #EF4444;
-      --warning: #F59E0B;
-      --gray-50: #F9FAFB;
-      --gray-800: #1F2937;
-      --gray-900: #111827;
-    }
+ :root {
+  --primary: #003D82;
+  --success: #2E7D32;
+  --error: #D32F2F;
+  --warning: #F57C00;
+  --gray-50: #F9FAFB;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+}
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(180deg, #1B4F8C 0%, #2E6FA8 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
 
     .container {
       max-width: 600px;
@@ -50,15 +50,16 @@
     }
 
     .avatar {
-      width: 60px;
-      height: 60px;
-      background: var(--primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-    }
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--primary) 0%, #002A5C 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 8px rgba(0, 61, 130, 0.3);
+}
 
     .user-details h2 {
       font-size: 20px;
@@ -123,17 +124,18 @@
       transform: none;
     }
 
-    .module-icon {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48px;
-    }
+  .module-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, var(--primary) 0%, #002A5C 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  box-shadow: 0 4px 12px rgba(0, 61, 130, 0.3);
+}
 
     .module-card.panic .module-icon {
       background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
