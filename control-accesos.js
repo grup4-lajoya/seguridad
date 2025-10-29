@@ -2,6 +2,8 @@
 let html5QrCodeScanner = null;
 let elements = {};
 let modoRutinasActivo = false;
+let flashActivado = false;  // ← NUEVO
+let streamActual = null;     // ← NUEVO
 
 // Esperar a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
@@ -1987,18 +1989,18 @@ function iniciarEscanerCodigo() {
   
   html5QrCodeScanner = new Html5Qrcode("reader");
   
-const config = {
-  fps: 5,  // Más lento = más preciso
-  qrbox: { width: 280, height: 100 },  // Un poco más grande
-  disableFlip: false,
-  rememberLastUsedCamera: true,
-  supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-};
+  const config = {
+    fps: 5,
+    qrbox: { width: 280, height: 100 },
+    disableFlip: false,
+    rememberLastUsedCamera: true,
+    supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+  };
   
-  // Solicitar cámara con enfoque automático
   html5QrCodeScanner.start(
     { 
       facingMode: "environment",
+      advanced: [{ torch: flashActivado }]  // ← NUEVO: Intentar activar flash
     },
     config,
     (decodedText) => {
@@ -2007,7 +2009,14 @@ const config = {
       detenerEscanerCodigo();
       buscarCodigo();
     }
-  ).catch((err) => {
+  ).then(() => {
+    // ✅ NUEVO: Obtener stream y verificar flash
+    const videoElement = document.querySelector('#reader video');
+    if (videoElement && videoElement.srcObject) {
+      streamActual = videoElement.srcObject;
+      verificarDisponibilidadFlash();
+    }
+  }).catch((err) => {
     console.error('❌ Error al iniciar escáner:', err);
     mostrarAlerta('No se pudo acceder a la cámara', 'error');
     detenerEscanerCodigo();
@@ -2021,12 +2030,92 @@ function detenerEscanerCodigo() {
       if (reader) reader.style.display = 'none';
       elements.inputCodigo.style.display = 'block';
       html5QrCodeScanner = null;
+      limpiarEscaner();  // ← AGREGAR ESTA LÍNEA
     }).catch(() => {
       html5QrCodeScanner = null;
+      limpiarEscaner();  // ← AGREGAR ESTA LÍNEA
     });
   }
 }
+// ============================================
+// FUNCIONES DE FLASH
+// ============================================
+async function verificarDisponibilidadFlash() {
+  try {
+    if (!streamActual) return;
+    
+    const track = streamActual.getVideoTracks()[0];
+    const capabilities = track.getCapabilities();
+    
+    if (capabilities.torch) {
+      console.log('✅ Flash disponible en este dispositivo');
+      mostrarBotonFlash(track);
+    } else {
+      console.log('⚠️ Flash no disponible en este dispositivo');
+    }
+  } catch (error) {
+    console.error('Error al verificar flash:', error);
+  }
+}
 
+function mostrarBotonFlash(track) {
+  // Verificar si ya existe el botón
+  if (document.getElementById('btn-flash')) return;
+  
+  const contenedorEscaner = document.getElementById('reader');
+  if (!contenedorEscaner) return;
+  
+  // Crear botón de flash
+  const btnFlash = document.createElement('button');
+  btnFlash.id = 'btn-flash';
+  btnFlash.className = 'btn-flash';
+  btnFlash.innerHTML = flashActivado ? '🔦 Flash ON' : '🔦 Flash OFF';
+  btnFlash.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFlash(track, btnFlash);
+  };
+  
+  contenedorEscaner.appendChild(btnFlash);
+}
+
+async function toggleFlash(track, boton) {
+  try {
+    flashActivado = !flashActivado;
+    
+    await track.applyConstraints({
+      advanced: [{ torch: flashActivado }]
+    });
+    
+    boton.innerHTML = flashActivado ? '🔦 Flash ON' : '🔦 Flash OFF';
+    if (flashActivado) {
+      boton.classList.add('active');
+    } else {
+      boton.classList.remove('active');
+    }
+    
+    console.log(`🔦 Flash ${flashActivado ? 'activado' : 'desactivado'}`);
+    
+    mostrarAlerta(
+      flashActivado ? '🔦 Flash activado' : '💡 Flash desactivado',
+      'info'
+    );
+  } catch (error) {
+    console.error('Error al cambiar flash:', error);
+    mostrarAlerta('No se pudo cambiar el flash', 'error');
+  }
+}
+
+function limpiarEscaner() {
+  flashActivado = false;
+  streamActual = null;
+  
+  // Eliminar botón de flash si existe
+  const btnFlash = document.getElementById('btn-flash');
+  if (btnFlash) {
+    btnFlash.remove();
+  }
+}
 // ============================================
 // ESCANEO OCR PARA PLACAS
 // ============================================
