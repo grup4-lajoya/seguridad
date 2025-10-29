@@ -19,27 +19,50 @@
       --gray-900: #111827;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+     body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(180deg, #2B4C7E 0%, #567EBB 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+  }
+        /* Header superior azul oscuro */
+    .app-header {
+      background: #1e3a5f;
+      color: white;
       padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .app-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 2px;
     }
 
-    .container {
+       .container {
       width: 100%;
       max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
-    .card {
+        .card {
       background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 32px;
       text-align: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     .header {
@@ -58,11 +81,14 @@
       font-size: 50px;
     }
 
-    h1 {
-      font-size: 28px;
-      color: var(--gray-900);
-      margin-bottom: 12px;
-    }
+   h1 {
+  font-size: 24px;
+  color: #1e3a5f;
+  margin-bottom: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
     .subtitle {
       font-size: 16px;
@@ -101,28 +127,29 @@
     }
 
     .scan-button {
-      width: 100%;
-      padding: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 20px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
+  width: 100%;
+  padding: 18px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
 
-    .scan-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-    }
+.scan-button:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+}
 
     .scan-button:active {
       transform: translateY(0);
@@ -202,13 +229,14 @@
     }
 
     .resultado-card {
-      background: white;
-      border: 2px solid #E5E7EB;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      text-align: left;
-    }
+  background: #f8f9fa;
+  border: none;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
 
     .resultado-header {
       display: flex;
@@ -219,17 +247,18 @@
       border-bottom: 2px solid #F3F4F6;
     }
 
-    .resultado-icon {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      flex-shrink: 0;
-    }
+   .resultado-icon {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
 
     .resultado-header h3 {
       font-size: 20px;
@@ -300,25 +329,27 @@
       transition: all 0.2s;
     }
 
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
+.btn-success {
+  background: #4CAF50;
+  color: white;
+}
 
-    .btn-success:hover {
-      background: #059669;
-      transform: translateY(-1px);
-    }
+.btn-success:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
 
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
+.btn-primary {
+  background: #2196F3;
+  color: white;
+}
 
-    .btn-primary:hover {
-      background: #4338CA;
-      transform: translateY(-1px);
-    }
+.btn-primary:hover {
+  background: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
 
     .spinner {
       width: 16px;
@@ -595,8 +626,14 @@ h1 {
   </style>
 </head>
 <body>
-   <!-- Contenedor de notificaciones flotantes -->
+  <!-- Contenedor de notificaciones flotantes -->
   <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Header superior -->
+  <div class="app-header">
+    <h1>ACCESOS</h1>
+  </div>
+
   <div class="container">
     <div class="card">
       <div class="header">
