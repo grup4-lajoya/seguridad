@@ -13,29 +13,31 @@
     }
 
     :root {
-      --primary: #4F46E5;
-      --success: #10B981;
-      --error: #EF4444;
-      --gray-900: #111827;
-    }
+  --primary: #003D82;      /* Azul FAP */
+  --success: #2E7D32;      /* Verde oscuro */
+  --error: #D32F2F;        /* Rojo más profesional */
+  --gray-900: #111827;
+  --primary-hover: #002A5C; /* Azul FAP más oscuro para hover */
+  --success-hover: #1B5E20; /* Verde más oscuro para hover */
+}
 
-     body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(180deg, #2B4C7E 0%, #567EBB 100%);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    margin: 0;
-  }
+    body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(180deg, #1B4F8C 0%, #2E6FA8 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+}
         /* Header superior azul oscuro */
-    .app-header {
-      background: #1e3a5f;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
+   .app-header {
+  background: #003D82;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
     
     .app-header h1 {
       margin: 0;
@@ -83,7 +85,7 @@
 
    h1 {
   font-size: 24px;
-  color: #1e3a5f;
+  color: #003D82;
   margin-bottom: 20px;
   font-weight: 700;
   text-transform: uppercase;
@@ -121,15 +123,17 @@
     }
 
     .input-group input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 61, 130, 0.15);
+  transform: scale(1.02);
+  transition: all 0.2s;
+}
 
-    .scan-button {
+.scan-button {
   width: 100%;
   padding: 18px;
-  background: #4CAF50;
+  background: var(--success);
   color: white;
   border: none;
   border-radius: 12px;
@@ -137,7 +141,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 8px rgba(46, 125, 50, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -146,9 +150,9 @@
 }
 
 .scan-button:hover {
-  background: #45a049;
+  background: var(--success-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 6px 12px rgba(46, 125, 50, 0.4);
 }
 
     .scan-button:active {
@@ -247,17 +251,17 @@
       border-bottom: 2px solid #F3F4F6;
     }
 
-   .resultado-icon {
+ .resultado-icon {
   width: 70px;
   height: 70px;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, var(--success) 0%, var(--success-hover) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32px;
   flex-shrink: 0;
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 8px rgba(46, 125, 50, 0.3);
 }
 
     .resultado-header h3 {
@@ -330,25 +334,35 @@
     }
 
 .btn-success {
-  background: #4CAF50;
+  background: var(--success);
   color: white;
 }
 
 .btn-success:hover {
-  background: #45a049;
+  background: var(--success-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 8px rgba(46, 125, 50, 0.4);
 }
 
 .btn-primary {
-  background: #2196F3;
+  background: var(--primary);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #1976D2;
+  background: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 61, 130, 0.4);
+}
+
+.btn-secondary {
+  background: #616161;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #424242;
+  transform: translateY(-1px);
 }
 
     .spinner {
