@@ -1997,30 +1997,30 @@ function iniciarEscanerCodigo() {
     supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
   };
   
-  html5QrCodeScanner.start(
-    { 
-      facingMode: "environment",
-      advanced: [{ torch: flashActivado }]  // ← NUEVO: Intentar activar flash
-    },
-    config,
-    (decodedText) => {
-      console.log('📷 Código escaneado:', decodedText);
-      elements.inputCodigo.value = decodedText;
-      detenerEscanerCodigo();
-      buscarCodigo();
-    }
-  ).then(() => {
-    // ✅ NUEVO: Obtener stream y verificar flash
+ html5QrCodeScanner.start(
+  { facingMode: "environment" },  // ← Volver a la configuración original
+  config,
+  (decodedText) => {
+    console.log('📷 Código escaneado:', decodedText);
+    elements.inputCodigo.value = decodedText;
+    detenerEscanerCodigo();
+    buscarCodigo();
+  }
+).then(() => {
+  // ✅ Obtener stream y verificar flash DESPUÉS de iniciar
+  setTimeout(() => {
     const videoElement = document.querySelector('#reader video');
     if (videoElement && videoElement.srcObject) {
       streamActual = videoElement.srcObject;
       verificarDisponibilidadFlash();
     }
-  }).catch((err) => {
-    console.error('❌ Error al iniciar escáner:', err);
-    mostrarAlerta('No se pudo acceder a la cámara', 'error');
-    detenerEscanerCodigo();
-  });
+  }, 500);  // Esperar medio segundo para que cargue el video
+}).catch((err) => {
+  console.error('❌ Error al iniciar escáner:', err);
+  mostrarAlerta('No se pudo acceder a la cámara', 'error');
+  detenerEscanerCodigo();
+});
+ 
 }
 
 function detenerEscanerCodigo() {
