@@ -7,6 +7,9 @@ let streamActual = null;     // ← NUEVO
 
 // Esperar a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
+   // ✅ INICIAR EN MODO CENTRADO
+  document.body.classList.add('modo-centrado');
+  
   elements = {
     inputCodigo: document.getElementById('inputCodigo'),
     btnBuscar: document.getElementById('btnBuscar'),
@@ -135,6 +138,10 @@ function limpiarResultado() {
   elements.resultado.innerHTML = '';
   elements.resultado.classList.add('hidden');
   ocultarAlerta();
+  
+  // ✅ VOLVER A MODO CENTRADO
+  document.body.classList.remove('modo-resultado');
+  document.body.classList.add('modo-centrado');
 }
 
 function mostrarSpinner() {
@@ -153,6 +160,10 @@ function ocultarSpinner() {
 function mostrarPersona(data) {
   console.log('👤 Mostrando persona:', data);
   console.log('🚌 modoRutinasActivo:', modoRutinasActivo);
+  
+   // ✅ CAMBIAR A MODO RESULTADO
+  document.body.classList.remove('modo-centrado');
+  document.body.classList.add('modo-resultado');
   
   const tieneIngresoActivo = data.ingreso_activo !== null;
   const esSalida = tieneIngresoActivo;
@@ -696,6 +707,10 @@ async function registrarIngresoConVehiculoSeleccionado(persona, vehiculo) {
   }
 }
 function mostrarVehiculo(data) {
+    // ✅ CAMBIAR A MODO RESULTADO
+  document.body.classList.remove('modo-centrado');
+  document.body.classList.add('modo-resultado');
+  
   const documentosVencidos = verificarDocumentosVencidos(data);
   const tieneDocumentosVencidos = documentosVencidos.length > 0;
   const tieneIngresoActivo = data.ingreso_activo !== null;
@@ -2534,6 +2549,10 @@ async function procesarPlacaSalidaTemporal() {
 }
 function mostrarFormularioIngresoTemporal(codigo, tipo) {
   console.log('📝 Mostrando formulario de ingreso temporal');
+
+   // ✅ CAMBIAR A MODO RESULTADO
+  document.body.classList.remove('modo-centrado');
+  document.body.classList.add('modo-resultado');
   
   // Guardar código para uso posterior
   window.codigoTemporal = codigo;
