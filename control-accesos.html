@@ -32,63 +32,49 @@ body {
   overflow-x: hidden;
 }
         /* Header superior azul oscuro */
-   .app-header {
+ .app-header {
   background: #003D82;
   color: white;
-  padding: 20px;
+  padding: 10px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
     
-    .app-header h1 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: 2px;
-    }
+ .app-header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
 
-      .container {
+  .container {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 10px;
+  padding: 5px;
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
-     .card {
+   .card {
   background: white;
-  border-radius: 20px 20px 0 0;
+  border-radius: 16px 16px 0 0;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-  padding: 20px;
+  padding: 16px;
   text-align: center;
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  margin-top: auto;
+  min-height: 0;
 }
-    /* Header superior más compacto en móvil */
-.app-header {
-  background: #003D82;
-  color: white;
-  padding: 12px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+.header {
+  margin-bottom: 12px;
   flex-shrink: 0;
 }
-
-.app-header h1 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 2px;
-}
-
-    .header {
-      margin-bottom: 40px;
-    }
 
     .icon {
       width: 100px;
@@ -102,10 +88,10 @@ body {
       font-size: 50px;
     }
 
-   h1 {
-  font-size: 24px;
+ h1 {
+  font-size: 18px;
   color: #003D82;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -469,135 +455,6 @@ body {
     padding: 10px 12px;
     font-size: 13px;
   }
-}
-    /* ============================================ */
-/* AJUSTES PARA PANTALLA COMPLETA SIN SCROLL */
-/* ============================================ */
-body {
-  padding: 10px;
-}
-
-.container {
-  max-width: 100%;
-  padding: 0;
-}
-
-.card {
-  padding: 16px;
-  max-height: calc(100vh - 20px);
-  overflow-y: auto;
-}
-
-.header {
-  margin-bottom: 16px;
-}
-
-.icon {
-  width: 70px;
-  height: 70px;
-  font-size: 35px;
-  margin-bottom: 12px;
-}
-
-h1 {
-  font-size: 22px;
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  font-size: 14px;
-}
-
-.input-group {
-  margin-bottom: 12px;
-}
-
-.input-group label {
-  margin-bottom: 6px;
-  font-size: 13px;
-}
-
-.input-group input {
-  padding: 10px;
-  font-size: 14px;
-}
-
-.scan-button {
-  padding: 14px;
-  font-size: 16px;
-  margin-bottom: 12px;
-}
-
-.btn {
-  padding: 10px;
-  font-size: 13px;
-}
-
-.back-button {
-  padding: 10px;
-  font-size: 14px;
-  margin-top: 8px !important;
-}
-
-.alert {
-  padding: 10px;
-  margin-bottom: 12px;
-  font-size: 12px;
-}
-
-.resultado-card {
-  padding: 12px;
-  margin-bottom: 12px;
-}
-
-.resultado-header {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  gap: 12px;
-}
-
-.resultado-icon {
-  width: 50px;
-  height: 50px;
-  font-size: 24px;
-}
-
-.resultado-header h3 {
-  font-size: 16px;
-  margin-bottom: 4px;
-}
-
-.badge {
-  padding: 3px 8px;
-  font-size: 11px;
-}
-
-.resultado-body {
-  margin-bottom: 12px;
-}
-
-.info-row {
-  padding: 8px 0;
-  font-size: 13px;
-}
-
-.info-label {
-  font-size: 12px;
-}
-
-.info-value {
-  font-size: 13px;
-}
-
-.resultado-actions {
-  gap: 8px;
-}
-
-/* Vehículos compactos */
-.vehiculo-item {
-  padding: 8px !important;
-  margin-bottom: 8px !important;
-  font-size: 13px !important;
 }
     /* ============================================ */
 /* SISTEMA DE TOASTS/NOTIFICACIONES FLOTANTES */
