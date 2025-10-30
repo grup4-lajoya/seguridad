@@ -142,6 +142,12 @@ function limpiarResultado() {
   // ✅ VOLVER A MODO CENTRADO
   document.body.classList.remove('modo-resultado');
   document.body.classList.add('modo-centrado');
+
+     // ✅ NUEVO: Remover padding del teclado
+  document.body.classList.remove('input-activo');
+  
+  // ✅ NUEVO: Scroll al inicio
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function mostrarSpinner() {
@@ -2765,4 +2771,91 @@ async function registrarIngresoTemporal() {
     console.error('❌ Error completo:', error);
     mostrarAlerta(error.message, 'error');
   }
+   // ============================================
+// GESTIÓN DE TECLADO MÓVIL
+// ============================================
+function configurarScrollInputs() {
+  // Detectar cuando cualquier input recibe foco
+  document.addEventListener('focusin', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+      console.log('📱 Input enfocado:', e.target.id);
+      
+      // Agregar clase al body para padding extra
+      document.body.classList.add('input-activo');
+      
+      // Esperar a que el teclado se abra (300ms) y hacer scroll
+      setTimeout(() => {
+        // Scroll suave al input
+        e.target.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+        
+        // Scroll adicional para asegurar visibilidad
+        setTimeout(() => {
+          window.scrollBy({
+            top: -50, // Ajustar 50px arriba para mejor visibilidad
+            behavior: 'smooth'
+          });
+        }, 100);
+      }, 300);
+    }
+  });
+  
+  // Detectar cuando el input pierde foco
+  document.addEventListener('focusout', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+      console.log('📱 Input desenfocado');
+      
+      // Remover clase después de un delay
+      setTimeout(() => {
+        // Solo remover si ningún otro input está enfocado
+        if (!document.activeElement || 
+            (document.activeElement.tagName !== 'INPUT' && 
+             document.activeElement.tagName !== 'TEXTAREA' &&
+             document.activeElement.tagName !== 'SELECT')) {
+          document.body.classList.remove('input-activo');
+        }
+      }, 100);
+    }
+  });
+  
+  // Detectar cambio de tamaño del viewport (cuando se abre/cierra el teclado)
+  let lastHeight = window.innerHeight;
+  window.addEventListener('resize', () => {
+    const currentHeight = window.innerHeight;
+    
+    if (currentHeight < lastHeight) {
+      // Teclado se abrió
+      console.log('⌨️ Teclado abierto');
+      const activeElement = document.activeElement;
+      if (activeElement && (activeElement.tagName === 'INPUT' || 
+          activeElement.tagName === 'TEXTAREA' || 
+          activeElement.tagName === 'SELECT')) {
+        setTimeout(() => {
+          activeElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }, 100);
+      }
+    } else {
+      // Teclado se cerró
+      console.log('⌨️ Teclado cerrado');
+    }
+    
+    lastHeight = currentHeight;
+  });
+}
+
+// Ejecutar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  // ... código existente ...
+  
+  // ✅ AGREGAR AL FINAL:
+  configurarScrollInputs();
+  
+  console.log('✅ Sistema de scroll para inputs configurado');
+});
 }
