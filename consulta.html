@@ -25,15 +25,15 @@
       --gray-900: #111827;
     }
 
-body {
+    body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(180deg, #1B4F8C 0%, #2E6FA8 100%);
       min-height: 100vh;
       padding: 10px;
-      padding-bottom: 80px; /* Espacio para el botón */
+      padding-bottom: 80px;
     }
 
-.container {
+    .container {
       max-width: 800px;
       margin: 0 auto;
       padding-bottom: 20px;
@@ -202,10 +202,42 @@ body {
       transition: max-height 0.3s ease;
     }
 
+    .collapsible-body.show {
+      max-height: 2000px; /* Altura grande para el scroll interno */
+    }
+
     .collapsible-content {
       padding: 0 20px 20px 20px;
-      max-height: 600px; /* Altura máxima para todo el contenido */
-      overflow-y: auto; /* Scroll si excede */
+    }
+
+    /* Filtro de búsqueda */
+    .search-box {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 61, 130, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-600);
+      font-size: 16px;
     }
 
     /* Secciones de personas */
@@ -250,28 +282,32 @@ body {
       transition: max-height 0.3s ease;
     }
 
-.person-list.expanded {
-      max-height: 400px;
+    .person-list.expanded {
+      max-height: 500px;
       overflow-y: auto;
-      padding-right: 8px; /* Espacio para el scrollbar */
+      padding-right: 8px;
     }
     
     /* Estilo del scrollbar */
-    .person-list::-webkit-scrollbar {
+    .person-list::-webkit-scrollbar,
+    .collapsible-content::-webkit-scrollbar {
       width: 8px;
     }
     
-    .person-list::-webkit-scrollbar-track {
+    .person-list::-webkit-scrollbar-track,
+    .collapsible-content::-webkit-scrollbar-track {
       background: #F3F4F6;
       border-radius: 4px;
     }
     
-    .person-list::-webkit-scrollbar-thumb {
+    .person-list::-webkit-scrollbar-thumb,
+    .collapsible-content::-webkit-scrollbar-thumb {
       background: #9CA3AF;
       border-radius: 4px;
     }
     
-    .person-list::-webkit-scrollbar-thumb:hover {
+    .person-list::-webkit-scrollbar-thumb:hover,
+    .collapsible-content::-webkit-scrollbar-thumb:hover {
       background: #6B7280;
     }
 
@@ -288,6 +324,10 @@ body {
       background: white;
       border-left-color: var(--primary);
       transform: translateX(4px);
+    }
+
+    .person-item.hidden {
+      display: none;
     }
 
     .person-name {
@@ -389,27 +429,6 @@ body {
       font-size: 14px;
     }
 
-    /* Búsqueda rápida */
-    .search-box {
-      margin-bottom: 16px;
-      display: none; /* Oculto por defecto, se puede activar después */
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid var(--gray-200);
-      border-radius: 8px;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 61, 130, 0.1);
-    }
-
     /* Toast notifications */
     .toast-container {
       position: fixed;
@@ -460,6 +479,14 @@ body {
         transform: translateX(0);
         opacity: 1;
       }
+    }
+
+    /* Resultado de búsqueda */
+    .no-results {
+      text-align: center;
+      padding: 20px;
+      color: var(--gray-600);
+      font-size: 14px;
     }
 
     /* Responsive */
@@ -571,6 +598,16 @@ body {
       </div>
       <div class="collapsible-body" id="bodyDentro">
         <div class="collapsible-content">
+          <!-- Filtro de búsqueda -->
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              class="search-input" 
+              id="searchDentro"
+              placeholder="Buscar por nombre, NSA o DNI..."
+            >
+          </div>
           <div id="contentDentro">
             <div class="spinner"></div>
           </div>
@@ -594,6 +631,16 @@ body {
       </div>
       <div class="collapsible-body" id="bodyFuera">
         <div class="collapsible-content">
+          <!-- Filtro de búsqueda -->
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              class="search-input" 
+              id="searchFuera"
+              placeholder="Buscar por nombre, NSA o DNI..."
+            >
+          </div>
           <div id="contentFuera">
             <div class="spinner"></div>
           </div>
