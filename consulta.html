@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#003D82">
   <title>Consulta - Sistema de Seguridad</title>
   <style>
     * {
@@ -11,94 +12,577 @@
       box-sizing: border-box;
     }
 
+    :root {
+      --primary: #003D82;
+      --success: #2E7D32;
+      --error: #D32F2F;
+      --warning: #F57C00;
+      --gray-50: #F9FAFB;
+      --gray-100: #F3F4F6;
+      --gray-200: #E5E7EB;
+      --gray-600: #6B7280;
+      --gray-800: #1F2937;
+      --gray-900: #111827;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(180deg, #1B4F8C 0%, #2E6FA8 100%);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
     }
 
     .container {
-      max-width: 600px;
-      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
-    .card {
+    /* Header */
+    .header {
       background: white;
       border-radius: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-      padding: 40px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       text-align: center;
     }
 
-    .icon {
-      width: 100px;
-      height: 100px;
-      background: #4F46E5;
-      border-radius: 50%;
+    .header h1 {
+      font-size: 24px;
+      color: var(--gray-900);
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 50px;
+      gap: 12px;
     }
 
-    h1 {
-      font-size: 28px;
-      color: #111827;
-      margin-bottom: 16px;
+    .header p {
+      font-size: 14px;
+      color: var(--gray-600);
     }
 
-    p {
-      font-size: 16px;
-      color: #6B7280;
-      margin-bottom: 24px;
-      line-height: 1.6;
+    /* Resumen Principal */
+    .summary-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      text-align: center;
     }
 
-    .warning {
-      background: #FEF3C7;
-      color: #92400E;
-      padding: 16px;
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: var(--gray-50);
+      border-radius: 12px;
+      padding: 20px;
+      border: 2px solid var(--gray-200);
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--gray-600);
+      font-weight: 600;
+    }
+
+    .last-update {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-bottom: 12px;
+    }
+
+    .btn-refresh {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
       border-radius: 8px;
       font-size: 14px;
-      margin-bottom: 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .btn {
-      display: inline-block;
-      padding: 14px 32px;
-      background: #4F46E5;
-      color: white;
-      text-decoration: none;
+    .btn-refresh:hover {
+      background: #002A5C;
+      transform: translateY(-2px);
+    }
+
+    .btn-refresh:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Cards Colapsables */
+    .collapsible-card {
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .collapsible-header {
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.2s;
+      user-select: none;
+    }
+
+    .collapsible-header:hover {
+      background: var(--gray-50);
+    }
+
+    .collapsible-header.dentro {
+      border-left: 4px solid var(--success);
+    }
+
+    .collapsible-header.fuera {
+      border-left: 4px solid var(--gray-600);
+    }
+
+    .collapsible-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .status-icon {
+      font-size: 28px;
+    }
+
+    .collapsible-title h3 {
+      font-size: 18px;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .collapsible-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .chevron {
+      font-size: 24px;
+      color: var(--gray-600);
+      transition: transform 0.3s;
+    }
+
+    .collapsible-header.active .chevron {
+      transform: rotate(180deg);
+    }
+
+    .collapsible-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .collapsible-content {
+      padding: 0 20px 20px 20px;
+    }
+
+    /* Secciones de personas */
+    .person-section {
+      margin-bottom: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--gray-100);
       border-radius: 8px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .section-header:hover {
+      background: var(--gray-200);
+    }
+
+    .section-title {
+      font-size: 15px;
       font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .section-count {
+      background: var(--primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .person-list {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .person-list.expanded {
+      max-height: 2000px;
+    }
+
+    .person-item {
+      padding: 12px 16px;
+      border-left: 3px solid var(--gray-200);
+      margin-bottom: 8px;
+      background: var(--gray-50);
+      border-radius: 0 8px 8px 0;
       transition: all 0.2s;
     }
 
-    .btn:hover {
-      background: #4338CA;
-      transform: translateY(-2px);
+    .person-item:hover {
+      background: white;
+      border-left-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .person-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .person-details {
+      font-size: 12px;
+      color: var(--gray-600);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .detail-badge {
+      background: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--gray-200);
+    }
+
+    /* Estados y badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-vehiculo {
+      background: #DBEAFE;
+      color: #1E40AF;
+    }
+
+    .badge-temporal {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .badge-vencido {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+
+    /* Botón volver */
+    .back-button {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 20px;
+    }
+
+    .back-button:hover {
+      background: white;
+      color: var(--primary);
+    }
+
+    /* Spinner de carga */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 40px auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray-600);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+    }
+
+    /* Búsqueda rápida */
+    .search-box {
+      margin-bottom: 16px;
+      display: none; /* Oculto por defecto, se puede activar después */
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 61, 130, 0.1);
+    }
+
+    /* Toast notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: white;
+      border-radius: 12px;
+      padding: 16px 20px;
+      min-width: 300px;
+      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: start;
+      gap: 12px;
+      pointer-events: auto;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .toast.success::before {
+      content: '✅';
+      font-size: 20px;
+    }
+
+    .toast.error::before {
+      content: '❌';
+      font-size: 20px;
+    }
+
+    .toast.info::before {
+      content: 'ℹ️';
+      font-size: 20px;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      body {
+        padding: 10px;
+      }
+
+      .header {
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+      }
+
+      .summary-card {
+        padding: 16px;
+      }
+
+      .summary-stats {
+        gap: 12px;
+      }
+
+      .stat-box {
+        padding: 16px;
+      }
+
+      .stat-number {
+        font-size: 28px;
+      }
+
+      .collapsible-header {
+        padding: 16px;
+      }
+
+      .collapsible-title h3 {
+        font-size: 16px;
+      }
+
+      .person-item {
+        padding: 10px 12px;
+      }
+
+      .toast-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+      }
+
+      .toast {
+        min-width: auto;
+        max-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Contenedor de notificaciones -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <div class="container">
-    <div class="card">
-      <div class="icon">📊</div>
-      <h1>Módulo de Consulta</h1>
-      <p>
-        Este módulo te permitirá consultar el personal que se encuentra dentro o fuera de la unidad en tiempo real.
-      </p>
-      <div class="warning">
-        🚧 <strong>En desarrollo</strong><br>
-        Este módulo estará disponible próximamente
-      </div>
-      <a href="dashboard.html" class="btn">← Volver al Dashboard</a>
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <span>📊</span>
+        Consulta General
+      </h1>
+      <p>Personal y vehículos en base</p>
     </div>
+
+    <!-- Resumen Principal -->
+    <div class="summary-card">
+      <div class="summary-stats">
+        <div class="stat-box">
+          <div class="stat-number" id="totalPersonas">-</div>
+          <div class="stat-label">👥 Personas en Base</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="totalVehiculos">-</div>
+          <div class="stat-label">🚗 Vehículos en Base</div>
+        </div>
+      </div>
+
+      <div class="last-update" id="lastUpdate">
+        ⏱️ Última actualización: --:--
+      </div>
+
+      <button class="btn-refresh" id="btnRefresh">
+        <span>🔄</span>
+        Actualizar
+      </button>
+    </div>
+
+    <!-- Card: Personas Dentro -->
+    <div class="collapsible-card">
+      <div class="collapsible-header dentro" id="headerDentro">
+        <div class="collapsible-title">
+          <span class="status-icon">🟢</span>
+          <div>
+            <h3>DENTRO (<span id="countDentro">0</span>)</h3>
+            <div class="collapsible-subtitle" id="subtitleDentro">
+              Cargando...
+            </div>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="collapsible-body" id="bodyDentro">
+        <div class="collapsible-content">
+          <div id="contentDentro">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card: Personas Fuera -->
+    <div class="collapsible-card">
+      <div class="collapsible-header fuera" id="headerFuera">
+        <div class="collapsible-title">
+          <span class="status-icon">⚪</span>
+          <div>
+            <h3>FUERA (<span id="countFuera">0</span>)</h3>
+            <div class="collapsible-subtitle" id="subtitleFuera">
+              Cargando...
+            </div>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="collapsible-body" id="bodyFuera">
+        <div class="collapsible-content">
+          <div id="contentFuera">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón volver -->
+    <button class="back-button" onclick="window.location.href='dashboard.html'">
+      ← Volver al Dashboard
+    </button>
   </div>
+
+  <script src="config.js"></script>
+  <script src="consulta.js"></script>
 </body>
 </html>
