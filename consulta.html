@@ -202,6 +202,8 @@
 
     .collapsible-content {
       padding: 0 20px 20px 20px;
+      max-height: 600px; /* Altura máxima para todo el contenido */
+      overflow-y: auto; /* Scroll si excede */
     }
 
     /* Secciones de personas */
@@ -247,7 +249,8 @@
     }
 
     .person-list.expanded {
-      max-height: 2000px;
+      max-height: 500px; /* Altura máxima de 500px */
+      overflow-y: auto; /* Scroll vertical cuando exceda */
     }
 
     .person-item {
