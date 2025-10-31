@@ -106,17 +106,8 @@ async function cargarDatos() {
       throw new Error(resultado.error || 'Error al cargar datos');
     }
 
-    // La función SQL devuelve un objeto JSON dentro de data
-    // Necesitamos extraer el resultado correcto
-    let datosFinales = resultado.data;
-    
-    // Si data es un array con un solo elemento que contiene 'resultado'
-    if (Array.isArray(datosFinales) && datosFinales.length > 0 && datosFinales[0].resultado) {
-      datosFinales = datosFinales[0].resultado;
-      console.log('📦 Datos extraídos de resultado:', datosFinales);
-    }
-    
-    datosActuales = datosFinales;
+// Extraer datos correctamente según la estructura
+    datosActuales = resultado.data;
     console.log('📦 Datos finales a mostrar:', datosActuales);
     mostrarDatos(datosActuales);
     actualizarTimestamp();
