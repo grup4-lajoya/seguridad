@@ -85,7 +85,6 @@ function toggleCollapsible(tipo) {
 // ============================================
 async function cargarDatos() {
   try {
-    console.log('📡 Cargando datos...');
     mostrarCargando();
 
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.CONSULTA_PERSONAS, {
@@ -99,19 +98,14 @@ async function cargarDatos() {
     });
 
     const resultado = await response.json();
-    console.log('📦 Resultado completo:', resultado);
-    console.log('📦 Resultado.data:', resultado.data);
 
     if (!resultado.success) {
       throw new Error(resultado.error || 'Error al cargar datos');
     }
 
-// Extraer datos correctamente según la estructura
     datosActuales = resultado.data;
-    console.log('📦 Datos finales a mostrar:', datosActuales);
     mostrarDatos(datosActuales);
     actualizarTimestamp();
-
     mostrarToast('✅ Datos actualizados correctamente', 'success');
 
   } catch (error) {
