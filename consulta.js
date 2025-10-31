@@ -99,13 +99,25 @@ async function cargarDatos() {
     });
 
     const resultado = await response.json();
-    console.log('📦 Resultado:', resultado);
+    console.log('📦 Resultado completo:', resultado);
+    console.log('📦 Resultado.data:', resultado.data);
 
     if (!resultado.success) {
       throw new Error(resultado.error || 'Error al cargar datos');
     }
 
-    datosActuales = resultado.data;
+    // La función SQL devuelve un objeto JSON dentro de data
+    // Necesitamos extraer el resultado correcto
+    let datosFinales = resultado.data;
+    
+    // Si data es un array con un solo elemento que contiene 'resultado'
+    if (Array.isArray(datosFinales) && datosFinales.length > 0 && datosFinales[0].resultado) {
+      datosFinales = datosFinales[0].resultado;
+      console.log('📦 Datos extraídos de resultado:', datosFinales);
+    }
+    
+    datosActuales = datosFinales;
+    console.log('📦 Datos finales a mostrar:', datosActuales);
     mostrarDatos(datosActuales);
     actualizarTimestamp();
 
