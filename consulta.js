@@ -142,6 +142,19 @@ function mostrarDatos(datos) {
   // Mostrar personas fuera
   mostrarPersonasFuera(datos.fuera);
 
+  // ✅ Inicializar búsqueda
+  inicializarBusqueda();
+
+  // ✅ Abrir automáticamente la sección "DENTRO" si hay personas
+  if (datos.resumen.dentro > 0) {
+    const bodyDentro = document.getElementById('bodyDentro');
+    const headerDentro = document.getElementById('headerDentro');
+    if (bodyDentro && headerDentro) {
+      headerDentro.classList.add('active');
+      bodyDentro.classList.add('show');
+    }
+  }
+
   console.log('✅ Datos mostrados correctamente');
 }
 
@@ -421,6 +434,61 @@ function mostrarToast(mensaje, tipo = 'info') {
     toast.style.transform = 'translateX(400px)';
     setTimeout(() => toast.remove(), 300);
   }, duracion);
+}
+// ============================================
+// FUNCIONALIDAD DE BÚSQUEDA/FILTRADO
+// ============================================
+function inicializarBusqueda() {
+  const searchDentro = document.getElementById('searchDentro');
+  const searchFuera = document.getElementById('searchFuera');
+
+  if (searchDentro) {
+    searchDentro.addEventListener('input', (e) => filtrarPersonas(e.target.value, 'contentDentro'));
+  }
+
+  if (searchFuera) {
+    searchFuera.addEventListener('input', (e) => filtrarPersonas(e.target.value, 'contentFuera'));
+  }
+}
+
+function filtrarPersonas(termino, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const items = container.querySelectorAll('.person-item');
+  const term = termino.toLowerCase().trim();
+  
+  let visibleCount = 0;
+
+  items.forEach(item => {
+    const nombre = item.querySelector('.person-name')?.textContent.toLowerCase() || '';
+    const detalles = item.querySelector('.person-details')?.textContent.toLowerCase() || '';
+    
+    const matches = nombre.includes(term) || detalles.includes(term);
+    
+    if (matches || term === '') {
+      item.classList.remove('hidden');
+      visibleCount++;
+    } else {
+      item.classList.add('hidden');
+    }
+  });
+
+  // Mostrar mensaje si no hay resultados
+  let noResultsMsg = container.querySelector('.no-results');
+  
+  if (visibleCount === 0 && term !== '') {
+    if (!noResultsMsg) {
+      noResultsMsg = document.createElement('div');
+      noResultsMsg.className = 'no-results';
+      noResultsMsg.textContent = '❌ No se encontraron resultados';
+      container.appendChild(noResultsMsg);
+    }
+  } else {
+    if (noResultsMsg) {
+      noResultsMsg.remove();
+    }
+  }
 }
 
 // ============================================
