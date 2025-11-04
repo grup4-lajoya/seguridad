@@ -1067,18 +1067,21 @@ async function buscarConductorSalida() {
     }
     
     // Buscar conductor
-    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        codigo: deteccion.valor,
-        tipo: deteccion.tipo
-      }),
-    });
+   const sesion = JSON.parse(localStorage.getItem('sesion'));
+   
+   const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+       'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+       'apikey': CONFIG.SUPABASE_ANON_KEY,
+     },
+     body: JSON.stringify({
+       codigo: deteccion.valor,
+       tipo: deteccion.tipo,
+       unidad: sesion.usuario.unidad || ''  // ← AGREGAR
+     }),
+   });
     
     const resultado = await response.json();
     
@@ -1649,18 +1652,21 @@ async function buscarConductor() {
     }
     
     // Buscar conductor
-    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        codigo: deteccion.valor,
-        tipo: deteccion.tipo
-      }),
-    });
+      const sesion = JSON.parse(localStorage.getItem('sesion'));
+      
+      const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+          'apikey': CONFIG.SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          codigo: deteccion.valor,
+          tipo: deteccion.tipo,
+          unidad: sesion.usuario.unidad || ''  // ← AGREGAR
+        }),
+      });
     
     const resultado = await response.json();
     
