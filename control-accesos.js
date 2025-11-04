@@ -582,7 +582,8 @@ async function procesarIngresoConOtraPlaca() {
       },
       body: JSON.stringify({
         codigo: placa,
-        tipo: 'placa'
+        tipo: 'placa',
+        unidad: sesion.usuario.unidad || ''
       }),
     });
 const resultado = await response.json();
@@ -1864,7 +1865,8 @@ async function procesarSalidaConVehiculo() {
       },
       body: JSON.stringify({
         codigo: placa,
-        tipo: 'placa'
+        tipo: 'placa',
+        unidad: sesion.usuario.unidad || ''
       }),
     });
     
@@ -2300,18 +2302,18 @@ async function registrarIngresoTemporalDirecto(idPersona, idVehiculo, conVehicul
       throw new Error('No se pudo obtener el NSA del usuario');
     }
     
-    // Buscar UUID del usuario en tabla personal
-    const responseBuscar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        codigo: nsa,
-        tipo: 'nsa'
-      }),
-    });
+   const responseBuscar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+       'apikey': CONFIG.SUPABASE_ANON_KEY,
+     },
+     body: JSON.stringify({
+       codigo: nsa,
+       tipo: 'nsa',
+       unidad: sesion.usuario.unidad || ''  // ← AGREGAR ESTA LÍNEA
+     }),
+   });
     
     const resultadoBuscar = await responseBuscar.json();
     if (!resultadoBuscar.success) {
@@ -2443,7 +2445,8 @@ async function procesarPlacaIngresoTemporal() {
       },
       body: JSON.stringify({
         codigo: placa,
-        tipo: 'placa'
+        tipo: 'placa',
+        unidad: sesion.usuario.unidad || ''
       }),
     });
     
@@ -2539,7 +2542,8 @@ async function procesarPlacaSalidaTemporal() {
       },
       body: JSON.stringify({
         codigo: placa,
-        tipo: 'placa'
+        tipo: 'placa',
+        unidad: sesion.usuario.unidad || ''
       }),
     });
     
@@ -2714,17 +2718,19 @@ async function registrarIngresoTemporal() {
     // Buscar el UUID del usuario en la tabla PERSONAL usando su NSA
     console.log('🔍 Buscando UUID del usuario en tabla personal...');
     
-    const responseBuscar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        codigo: nsa,
-        tipo: 'nsa'
-      }),
-    });
+   // ✅ DESPUÉS:
+   const responseBuscar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+       'apikey': CONFIG.SUPABASE_ANON_KEY,
+     },
+     body: JSON.stringify({
+       codigo: nsa,
+       tipo: 'nsa',
+       unidad: sesion.usuario.unidad || ''  // ← AGREGAR
+     }),
+   });
 
     const resultadoBuscar = await responseBuscar.json();
     console.log('📦 Resultado búsqueda usuario:', resultadoBuscar);
