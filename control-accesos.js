@@ -1935,12 +1935,10 @@ async function procesarSalidaConVehiculo() {
 // ============================================
 function formatearFecha(fecha) {
   if (!fecha) return 'N/A';
-  const date = new Date(fecha);
-  return date.toLocaleDateString('es-PE', { 
-    day: '2-digit', 
-    month: '2-digit', 
-    year: 'numeric' 
-  });
+  
+  // ✅ Split manual - sin conversiones de zona horaria
+  const [año, mes, dia] = fecha.split('-');
+  return `${dia}/${mes}/${año}`;
 }
 // ============================================
 // VERIFICAR AUTENTICACIÓN
