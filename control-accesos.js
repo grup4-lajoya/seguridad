@@ -1239,17 +1239,22 @@ async function buscarCodigo(codigo) {
     }
     
     // Llamar a Edge Function
-    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        codigo: deteccion.valor,
-        tipo: deteccion.tipo
-      }),
-    });
+      // Llamar a Edge Function
+      const sesion = JSON.parse(localStorage.getItem('sesion'));
+      const unidadVigilante = sesion?.usuario?.unidad || '';
+      
+      const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': CONFIG.SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          codigo: deteccion.valor,
+          tipo: deteccion.tipo,
+          unidad: unidadVigilante  // ← AGREGAR
+        }),
+      });
     
     const resultado = await response.json();
     console.log('📦 Resultado:', resultado);
