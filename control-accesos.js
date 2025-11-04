@@ -1824,6 +1824,12 @@ window.personaSalida = persona;
 }
 async function procesarSalidaConVehiculo() {
   try {
+    // ✅ OBTENER SESIÓN AL INICIO (ANTES de usarla)
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    if (!sesion || !sesion.usuario) {
+      throw new Error('Sesión no válida. Por favor inicia sesión nuevamente.');
+    }
+    
     const selectVehiculo = document.getElementById('selectVehiculoSalida');
     const inputPlaca = document.getElementById('inputPlacaSalida');
     
@@ -1893,7 +1899,6 @@ async function procesarSalidaConVehiculo() {
     // Registrar salida con vehículo
     mostrarAlerta('Procesando salida...', 'info');
     
-    const sesion = JSON.parse(localStorage.getItem('sesion'));
     const idUsuario = sesion.usuario.id;
     
     const responseSalida = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
