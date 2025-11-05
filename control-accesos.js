@@ -2134,6 +2134,7 @@ async function crearVehiculoTemporal(placa, persona) {
 function iniciarEscanerCodigo() {
   elements.inputCodigo.style.display = 'none';
   
+  // Crear contenedor del escáner si no existe
   if (!document.getElementById('reader')) {
     const readerDiv = document.createElement('div');
     readerDiv.id = 'reader';
@@ -2141,9 +2142,40 @@ function iniciarEscanerCodigo() {
     elements.inputCodigo.parentElement.insertBefore(readerDiv, elements.inputCodigo.nextSibling);
   }
   
-  document.getElementById('reader').style.display = 'block';
+  const readerDiv = document.getElementById('reader');
+  readerDiv.style.display = 'block';
   
-  html5QrCodeScanner = new Html5Qrcode("reader");
+  // ✅ AGREGAR BOTÓN DE CERRAR ANTES DE INICIAR LA CÁMARA
+  readerDiv.innerHTML = `
+    <button 
+      onclick="detenerEscanerCodigo()" 
+      style="
+        width: 100%;
+        padding: 16px;
+        background: #EF4444;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        z-index: 10000;
+        position: relative;
+      ">
+      ✕ CERRAR CÁMARA
+    </button>
+    <div style="background: #3B82F6; color: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 14px;">
+      <strong>💡 Consejos:</strong><br>
+      • Acerca/aleja hasta que enfoque<br>
+      • Mantén buena iluminación<br>
+      • Coloca el código dentro del recuadro
+    </div>
+    <div id="reader-camera"></div>
+  `;
+  
+  html5QrCodeScanner = new Html5Qrcode("reader-camera");
   
   const config = {
     fps: 5,
@@ -2163,34 +2195,8 @@ function iniciarEscanerCodigo() {
       buscarCodigo();
     }
   ).then(() => {
-    // ✅ CREAR BOTÓN FLOTANTE DE CERRAR (después de iniciar la cámara)
-    if (!document.getElementById('btn-cerrar-escaner')) {
-      const btnCerrar = document.createElement('button');
-      btnCerrar.id = 'btn-cerrar-escaner';
-      btnCerrar.textContent = '✕ Cerrar Cámara';
-      btnCerrar.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10000;
-        background: #EF4444;
-        color: white;
-        border: none;
-        padding: 14px 24px;
-        border-radius: 25px;
-        font-size: 16px;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
-        cursor: pointer;
-      `;
-      btnCerrar.onclick = detenerEscanerCodigo;
-      document.body.appendChild(btnCerrar);
-    }
-    
-    // Verificar flash después de medio segundo
     setTimeout(() => {
-      const videoElement = document.querySelector('#reader video');
+      const videoElement = document.querySelector('#reader-camera video');
       if (videoElement && videoElement.srcObject) {
         streamActual = videoElement.srcObject;
         verificarDisponibilidadFlash();
@@ -2207,22 +2213,31 @@ function detenerEscanerCodigo() {
   if (html5QrCodeScanner) {
     html5QrCodeScanner.stop().then(() => {
       const reader = document.getElementById('reader');
-      if (reader) reader.style.display = 'none';
+      if (reader) {
+        reader.style.display = 'none';
+        reader.innerHTML = ''; // Limpiar todo el contenido
+      }
       elements.inputCodigo.style.display = 'block';
       html5QrCodeScanner = null;
       limpiarEscaner();
-      
-      // ✅ ELIMINAR BOTÓN FLOTANTE
-      const btnCerrar = document.getElementById('btn-cerrar-escaner');
-      if (btnCerrar) btnCerrar.remove();
     }).catch(() => {
+      const reader = document.getElementById('reader');
+      if (reader) {
+        reader.style.display = 'none';
+        reader.innerHTML = ''; // Limpiar todo el contenido
+      }
+      elements.inputCodigo.style.display = 'block';
       html5QrCodeScanner = null;
       limpiarEscaner();
-      
-      // ✅ ELIMINAR BOTÓN FLOTANTE
-      const btnCerrar = document.getElementById('btn-cerrar-escaner');
-      if (btnCerrar) btnCerrar.remove();
     });
+  } else {
+    // Si no hay escáner activo, solo ocultar
+    const reader = document.getElementById('reader');
+    if (reader) {
+      reader.style.display = 'none';
+      reader.innerHTML = '';
+    }
+    elements.inputCodigo.style.display = 'block';
   }
 }
 // ============================================
