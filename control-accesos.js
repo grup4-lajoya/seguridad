@@ -986,7 +986,6 @@ async function procesarIngresoConOtraPlaca() {
       body: JSON.stringify({
         codigo: placa,
         tipo: 'placa',
-        const sesion = JSON.parse(localStorage.getItem('sesion'));
         unidad: sesion.usuario.unidad || ''
       }),
     });
