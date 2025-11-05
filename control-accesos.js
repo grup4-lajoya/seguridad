@@ -2151,7 +2151,7 @@ function iniciarEscanerCodigo() {
       onclick="detenerEscanerCodigo()" 
       style="
         width: 100%;
-        padding: 16px;
+        padding: 12px;
         background: #EF4444;
         color: white;
         border: none;
