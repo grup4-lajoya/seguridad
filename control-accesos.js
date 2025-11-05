@@ -2843,12 +2843,28 @@ function llenarSelectPaises() {
   
   select.innerHTML = '<option value="">Seleccione un país</option>';
   
+  // ✅ Variable para guardar el option de Perú
+  let optionPeru = null;
+  
   listaPaises.forEach(pais => {
     const option = document.createElement('option');
     option.value = pais.nombre;
     option.textContent = pais.nombre;
-    select.appendChild(option);
+    
+    // ✅ Si es Perú, guardarlo para ponerlo al inicio
+    if (pais.nombre.toUpperCase() === 'PERÚ' || pais.nombre.toUpperCase() === 'PERU') {
+      optionPeru = option;
+    } else {
+      select.appendChild(option);
+    }
   });
+  
+  // ✅ Si encontramos Perú, insertarlo después del "Seleccione..."
+  if (optionPeru) {
+    select.insertBefore(optionPeru, select.options[1]);
+    // ✅ Seleccionarlo por defecto
+    optionPeru.selected = true;
+  }
 }
 
 function llenarSelectDependencias() {
