@@ -411,7 +411,7 @@ ${vehiculoAutorizado ? `
         🚶 No, sin vehículo
       </button>
 ` : esOtraUnidad ? `
-      <!-- PERSONAL DE OTRA UNIDAD: Pedir motivo y responsable -->
+      <!-- PERSONAL DE OTRA UNIDAD: Primero vehículo, luego motivo -->
       <div class="alert alert-warning" style="margin: 16px 0;">
         <span>⚠️</span>
         <div>
@@ -420,9 +420,28 @@ ${vehiculoAutorizado ? `
         </div>
       </div>
       
-      <button class="btn btn-primary" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)})'>
-        ⚠️ Continuar
-      </button>
+      <div class="alert alert-info" style="margin: 16px 0;">
+        <span>🚗</span>
+        <div>
+          <strong>¿Ingresó con su vehículo?</strong>
+        </div>
+      </div>
+      
+      <div class="resultado-actions">
+        ${tieneVehiculos ? `
+          <button class="btn btn-success" onclick='seleccionarVehiculoOtraUnidad(${JSON.stringify(data)})'>
+            ✅ Sí, con vehículo
+          </button>
+        ` : `
+          <button class="btn btn-success" onclick='solicitarPlacaOtraUnidad(${JSON.stringify(data)})'>
+            ✅ Sí, con vehículo
+          </button>
+        `}
+        <button class="btn btn-primary" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)})'>
+          🚶 No, sin vehículo
+        </button>
+      </div>
+
 ` : tieneVehiculos ? `
       <!-- TIENE VEHÍCULOS REGISTRADOS: Ingreso normal -->
       <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
@@ -605,6 +624,22 @@ function confirmarDatosOtraUnidadConVehiculo() {
   
   // Mostrar vehículos para que seleccione
   mostrarVehiculosPersona(window.personaOtraUnidad);
+}
+// 1️⃣ Cuando tiene vehículos registrados
+function seleccionarVehiculoOtraUnidad(data) {
+  window.personaOtraUnidad = data;
+  solicitarDatosOtraUnidadConVehiculo(data);
+}
+
+// 2️⃣ Pedir primero motivo y responsable
+function solicitarDatosOtraUnidadConVehiculo(data) {
+  solicitarDatosOtraUnidad(data);
+}
+
+// 3️⃣ Cuando NO tiene vehículos registrados
+function solicitarPlacaOtraUnidad(data) {
+  window.personaOtraUnidad = data;
+  solicitarPlacaIngreso(data);
 }
 
 // ============================================
@@ -3228,7 +3263,7 @@ async function registrarIngresoTemporal() {
   }
 }
 
-   // ============================================
+// ============================================
 // GESTIÓN DE TECLADO MÓVIL
 // ============================================
 function configurarScrollInputs() {
