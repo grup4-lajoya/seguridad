@@ -4,10 +4,12 @@ let elements = {};
 let modoRutinasActivo = false;
 let flashActivado = false;  // ← NUEVO
 let streamActual = null;     // ← NUEVO
+let listaPaises = [];
+let listaDependencias = [];
 
 // Esperar a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-   // ✅ INICIAR EN MODO CENTRADO
+  // ✅ INICIAR EN MODO CENTRADO
   document.body.classList.add('modo-centrado');
   
   elements = {
@@ -34,7 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (elements.btnLimpiar) {
     elements.btnLimpiar.addEventListener('click', limpiarResultado);
   }
-    const btnEscanearDNI = document.getElementById('btnEscanearDNI');
+  
+  const btnEscanearDNI = document.getElementById('btnEscanearDNI');
   if (btnEscanearDNI) {
     btnEscanearDNI.addEventListener('click', iniciarEscanerCodigo);
   }
@@ -50,10 +53,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   const btnModoRutinas = document.getElementById('btnModoRutinas');
-    if (btnModoRutinas) {
-      btnModoRutinas.addEventListener('click', toggleModoRutinas);
-    }
-   verificarAuth();
+  if (btnModoRutinas) {
+    btnModoRutinas.addEventListener('click', toggleModoRutinas);
+  }
+  
+  verificarAuth();
+  
+  // ✅ CARGAR DATOS INICIALES
+  cargarPaises();
+  cargarDependencias();
+  
   elements.inputCodigo.focus();
 });
 
@@ -1969,6 +1978,51 @@ function verificarAuth() {
   const sesion = localStorage.getItem('sesion');
   if (!sesion) {
     window.location.href = 'index.html';
+  }
+}
+// ============================================
+// CARGAR PAÍSES
+// ============================================
+async function cargarPaises() {
+  try {
+    const response = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/pais?activo=eq.true&order=nombre.asc`, {
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
+      }
+    });
+    
+    if (!response.ok) throw new Error('Error al cargar países');
+    
+    listaPaises = await response.json();
+    console.log('✅ Países cargados:', listaPaises.length, 'registros');
+    
+  } catch (error) {
+    console.error('Error al cargar países:', error);
+    mostrarAlerta('Error al cargar lista de países', 'error');
+  }
+}
+
+// ============================================
+// CARGAR DEPENDENCIAS
+// ============================================
+async function cargarDependencias() {
+  try {
+    const response = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/dependencias?activo=eq.true&order=descripcion.asc`, {
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
+      }
+    });
+    
+    if (!response.ok) throw new Error('Error al cargar dependencias');
+    
+    listaDependencias = await response.json();
+    console.log('✅ Dependencias cargadas:', listaDependencias.length, 'registros');
+    
+  } catch (error) {
+    console.error('Error al cargar dependencias:', error);
+    mostrarAlerta('Error al cargar lista de dependencias', 'error');
   }
 }
 async function crearVehiculoTemporal(placa, persona) {
