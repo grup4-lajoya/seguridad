@@ -2591,113 +2591,157 @@ function mostrarFormularioIngresoTemporal(codigo, tipo) {
   window.codigoTemporal = codigo;
   
   elements.resultado.classList.remove('hidden');
-  elements.resultado.innerHTML = `
-    <div class="resultado-card">
-      <div class="resultado-header">
-        <div class="resultado-icon" style="background: #F59E0B;">⚠️</div>
+elements.resultado.innerHTML = `
+  <div class="resultado-card">
+    <div class="resultado-header">
+      <div class="resultado-icon" style="background: #F59E0B;">⚠️</div>
+      <div>
+        <h3>Persona No Autorizada</h3>
+        <span class="badge" style="background: #FEF3C7; color: #92400E;">INGRESO TEMPORAL</span>
+      </div>
+    </div>
+    
+    <div class="resultado-body">
+      <div class="alert alert-warning">
+        <span>⚠️</span>
         <div>
-          <h3>Persona No Autorizada</h3>
-          <span class="badge" style="background: #FEF3C7; color: #92400E;">INGRESO TEMPORAL</span>
+          <strong>N° Documento: ${codigo}</strong><br>
+          Esta persona no está registrada. Complete el formulario para autorizar el ingreso temporal.
         </div>
       </div>
       
-      <div class="resultado-body">
-        <div class="alert alert-warning">
-          <span>⚠️</span>
-          <div>
-            <strong>${tipo.toUpperCase()}: ${codigo}</strong><br>
-            Esta persona no está registrada. Complete el formulario para autorizar el ingreso temporal.
-          </div>
-        </div>
-        
-        <div class="input-group">
-          <label for="inputNombreTemporal">Nombre completo: *</label>
-          <input 
-            type="text" 
-            id="inputNombreTemporal" 
-            placeholder="Ej: JUAN PÉREZ GARCÍA"
-            autocomplete="off"
-            style="text-transform: uppercase;"
-            required
-          >
-        </div>
-        
-        <div class="input-group">
-          <label for="inputEmpresaTemporal">Empresa de procedencia:</label>
-          <input 
-            type="text" 
-            id="inputEmpresaTemporal" 
-            placeholder="Ej: CONTRATISTA XYZ"
-            autocomplete="off"
-            style="text-transform: uppercase;"
-          >
-        </div>
-        
-        <div class="input-group">
-          <label for="inputMotivoTemporal">Motivo de visita:</label>
-          <input 
-            type="text" 
-            id="inputMotivoTemporal" 
-            placeholder="Ej: REUNIÓN, TRABAJO, ETC"
-            autocomplete="off"
-            style="text-transform: uppercase;"
-          >
-        </div>
-        
-        <div class="input-group">
-          <label for="inputAutorizadoTemporal">Autorizado por: *</label>
-          <input 
-            type="text" 
-            id="inputAutorizadoTemporal" 
-            placeholder="Ej: SUPERVISOR GARCÍA"
-            autocomplete="off"
-            style="text-transform: uppercase;"
-            required
-          >
-        </div>
-        
-        <div class="input-group">
-          <label for="inputPlacaTemporal">Placa del vehículo (opcional):</label>
-          <input 
-            type="text" 
-            id="inputPlacaTemporal" 
-            placeholder="Ej: ABC-123"
-            autocomplete="off"
-            style="text-transform: uppercase;"
-          >
-        </div>
-        
-        <div class="alert alert-info" style="margin-top: 12px;">
-          <span>ℹ️</span>
-          <div>
-            <small>* Campos obligatorios</small>
-          </div>
-        </div>
+      <div class="input-group">
+        <label for="inputNombreTemporal">Apellidos y Nombres: *</label>
+        <input 
+          type="text" 
+          id="inputNombreTemporal" 
+          placeholder="Ej: PÉREZ GARCÍA JUAN"
+          autocomplete="off"
+          style="text-transform: uppercase;"
+          required
+        >
       </div>
-
-      <div class="resultado-actions">
-        <button class="btn btn-success" onclick="registrarIngresoTemporal()">
-          ✅ Registrar Ingreso Temporal
-        </button>
-        <button class="btn" style="background: #6B7280; color: white;" onclick="limpiarResultado()">
-          ← Cancelar
-        </button>
+      
+      <div class="input-group">
+        <label for="inputGradoTemporal">Grado (Opcional):</label>
+        <input 
+          type="text" 
+          id="inputGradoTemporal" 
+          placeholder="Ej: CAPITÁN, ING., DR."
+          autocomplete="off"
+          style="text-transform: uppercase;"
+        >
+      </div>
+      
+      <div class="input-group">
+        <label for="inputEmpresaTemporal">Empresa / Entidad / Organización (Opcional):</label>
+        <input 
+          type="text" 
+          id="inputEmpresaTemporal" 
+          placeholder="Ej: CONTRATISTA XYZ"
+          autocomplete="off"
+          style="text-transform: uppercase;"
+        >
+      </div>
+      
+      <div class="input-group">
+        <label for="selectPaisTemporal">Nacionalidad: *</label>
+        <select id="selectPaisTemporal" required style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid #E5E7EB;">
+          <option value="">Seleccione un país</option>
+        </select>
+      </div>
+      
+      <div class="input-group">
+        <label for="inputMotivoTemporal">Motivo de Visita: *</label>
+        <input 
+          type="text" 
+          id="inputMotivoTemporal" 
+          placeholder="Ej: REUNIÓN, TRABAJO, ETC"
+          autocomplete="off"
+          style="text-transform: uppercase;"
+          required
+        >
+      </div>
+      
+      <div class="input-group">
+        <label for="selectResponsableTemporal">Responsable: *</label>
+        <select id="selectResponsableTemporal" required style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid #E5E7EB;">
+          <option value="">Seleccione una dependencia</option>
+        </select>
+      </div>
+      
+      <div class="input-group">
+        <label for="inputPlacaTemporal">Placa del Vehículo (Opcional):</label>
+        <input 
+          type="text" 
+          id="inputPlacaTemporal" 
+          placeholder="Ej: ABC-123"
+          autocomplete="off"
+          style="text-transform: uppercase;"
+        >
+      </div>
+      
+      <div class="alert alert-info" style="margin-top: 12px;">
+        <span>ℹ️</span>
+        <div>
+          <small>* Campos obligatorios</small>
+        </div>
       </div>
     </div>
-  `;
+
+    <div class="resultado-actions">
+      <button class="btn btn-success" onclick="registrarIngresoTemporal()">
+        ✅ Registrar Ingreso Temporal
+      </button>
+      <button class="btn" style="background: #6B7280; color: white;" onclick="limpiarResultado()">
+        ← Cancelar
+      </button>
+    </div>
+  </div>
+`;
+
+// Llenar los selects
+setTimeout(() => {
+  llenarSelectPaises();
+  llenarSelectDependencias();
+  document.getElementById('inputNombreTemporal')?.focus();
+}, 100);}
+
+function llenarSelectPaises() {
+  const select = document.getElementById('selectPaisTemporal');
+  if (!select || !listaPaises) return;
   
-  // Enfocar primer input
-  setTimeout(() => {
-    document.getElementById('inputNombreTemporal')?.focus();
-  }, 100);
+  select.innerHTML = '<option value="">Seleccione un país</option>';
+  
+  listaPaises.forEach(pais => {
+    const option = document.createElement('option');
+    option.value = pais.nombre;
+    option.textContent = pais.nombre;
+    select.appendChild(option);
+  });
 }
 
+function llenarSelectDependencias() {
+  const select = document.getElementById('selectResponsableTemporal');
+  if (!select || !listaDependencias) return;
+  
+  select.innerHTML = '<option value="">Seleccione una dependencia</option>';
+  
+  listaDependencias.forEach(dep => {
+    const option = document.createElement('option');
+    option.value = dep.descripcion;
+    option.textContent = dep.descripcion;
+    select.appendChild(option);
+  });
+}
 async function registrarIngresoTemporal() {
   try {
     const nombre = document.getElementById('inputNombreTemporal')?.value.trim().toUpperCase();
+    const grado = document.getElementById('inputGradoTemporal')?.value.trim().toUpperCase();
     const empresa = document.getElementById('inputEmpresaTemporal')?.value.trim().toUpperCase();
+    const pais = document.getElementById('selectPaisTemporal')?.value;
     const motivo = document.getElementById('inputMotivoTemporal')?.value.trim().toUpperCase();
-    const autorizado = document.getElementById('inputAutorizadoTemporal')?.value.trim().toUpperCase();
+    const responsable = document.getElementById('selectResponsableTemporal')?.value;
     const placa = document.getElementById('inputPlacaTemporal')?.value.trim().toUpperCase();
     
     // Validaciones
@@ -2712,9 +2756,21 @@ async function registrarIngresoTemporal() {
       return;
     }
     
-    if (!autorizado) {
-      mostrarAlerta('Debe indicar quién autorizó el ingreso', 'error');
-      document.getElementById('inputAutorizadoTemporal')?.focus();
+    if (!pais) {
+      mostrarAlerta('Debe seleccionar una nacionalidad', 'error');
+      document.getElementById('selectPaisTemporal')?.focus();
+      return;
+    }
+    
+    if (!motivo) {
+      mostrarAlerta('El motivo de visita es obligatorio', 'error');
+      document.getElementById('inputMotivoTemporal')?.focus();
+      return;
+    }
+    
+    if (!responsable) {
+      mostrarAlerta('Debe seleccionar un responsable', 'error');
+      document.getElementById('selectResponsableTemporal')?.focus();
       return;
     }
     
@@ -2729,28 +2785,29 @@ async function registrarIngresoTemporal() {
     }
 
     const nsa = sesion.usuario.nsa;
+    const unidadVigilante = sesion.usuario.unidad;
     console.log('👤 NSA del usuario:', nsa);
+    console.log('🏢 Unidad:', unidadVigilante);
 
     if (!nsa) {
       throw new Error('El usuario no tiene NSA registrado');
     }
 
-    // Buscar el UUID del usuario en la tabla PERSONAL usando su NSA
+    // Buscar el UUID del usuario
     console.log('🔍 Buscando UUID del usuario en tabla personal...');
     
-   // ✅ DESPUÉS:
-   const responseBuscar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
-     method: 'POST',
-     headers: {
-       'Content-Type': 'application/json',
-       'apikey': CONFIG.SUPABASE_ANON_KEY,
-     },
-     body: JSON.stringify({
-       codigo: nsa,
-       tipo: 'nsa',
-       unidad: sesion.usuario.unidad || ''  // ← AGREGAR
-     }),
-   });
+    const responseBuscar = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: nsa,
+        tipo: 'nsa',
+        unidad: unidadVigilante || ''
+      }),
+    });
 
     const resultadoBuscar = await responseBuscar.json();
     console.log('📦 Resultado búsqueda usuario:', resultadoBuscar);
@@ -2759,7 +2816,7 @@ async function registrarIngresoTemporal() {
       throw new Error('No se encontró al usuario en la tabla personal. Contacte al administrador.');
     }
 
-    const idUsuario = resultadoBuscar.data.id; // Este es el UUID de la tabla personal
+    const idUsuario = resultadoBuscar.data.id;
     console.log('✅ UUID del usuario encontrado:', idUsuario);
     
     // Registrar ingreso temporal
@@ -2773,11 +2830,14 @@ async function registrarIngresoTemporal() {
       body: JSON.stringify({
         dni: window.codigoTemporal,
         nombre: nombre,
+        grado: grado || null,
         empresa_procedencia: empresa || null,
+        pais: pais,
         placa_vehiculo: placa || null,
-        motivo_visita: motivo || null,
-        autorizado_por: autorizado,
-        id_usuario: idUsuario  // Ahora es UUID correcto
+        motivo_visita: motivo,
+        autorizado_por: responsable,
+        id_usuario: idUsuario,
+        unidad: unidadVigilante
       }),
     });
     
@@ -2800,6 +2860,8 @@ async function registrarIngresoTemporal() {
     console.error('❌ Error completo:', error);
     mostrarAlerta(error.message, 'error');
   }
+}
+
    // ============================================
 // GESTIÓN DE TECLADO MÓVIL
 // ============================================
@@ -2887,4 +2949,4 @@ document.addEventListener('DOMContentLoaded', function() {
   
   console.log('✅ Sistema de scroll para inputs configurado');
 });
-}
+
