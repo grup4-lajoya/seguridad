@@ -194,6 +194,12 @@ function mostrarPersona(data) {
   const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
   const esForaneo = data.origen === 'foraneo';
   const esTemporal = data.tipo_origen === 'temporal' || data.tipo_origen === 'ingreso_temporal';
+
+    let vehiculoAutorizado = null;
+  if (!esSalida && data.visita_autorizada && data.visita_autorizada.vehiculo_autorizado) {
+    vehiculoAutorizado = data.visita_autorizada.vehiculo_info;
+    console.log('🚗 Vehículo autorizado en visita:', vehiculoAutorizado);
+  }
   
   // ✅ SI MODO RUTINAS ESTÁ ACTIVO: Procesar directamente sin preguntar
   if (modoRutinasActivo === true) {
@@ -346,6 +352,38 @@ ${esSalida ? `
     </div>
   ` : ''}
   
+${vehiculoAutorizado ? `
+  <!-- TIENE VEHÍCULO AUTORIZADO EN LA VISITA -->
+  <div class="alert alert-success" style="margin: 16px 0;">
+    <span>✅</span>
+    <div>
+      <strong>Vehículo Autorizado en Visita:</strong><br>
+      ${vehiculoAutorizado.placa} - ${vehiculoAutorizado.marca || ''} ${vehiculoAutorizado.modelo || ''}
+    </div>
+  </div>
+  
+  <div class="alert alert-info" style="margin: 16px 0;">
+    <span>🚗</span>
+    <div>
+      <strong>¿Ingresó con este vehículo?</strong>
+    </div>
+  </div>
+  
+  <div class="resultado-actions">
+    <button class="btn btn-success" onclick='registrarIngresoConVehiculoAutorizado(${JSON.stringify(data)}, ${JSON.stringify(vehiculoAutorizado)})'>
+      ✅ Sí, con ${vehiculoAutorizado.placa}
+    </button>
+    <button class="btn btn-primary" onclick="registrarIngreso('${data.id}', '${data.origen}')">
+      🚶 No, sin vehículo
+    </button>
+    ${tieneVehiculos ? `
+      <button class="btn" style="background: #6B7280; color: white;" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
+        🚗 Otro vehículo registrado
+      </button>
+    ` : ''}
+  </div>
+` : `
+  <!-- NO TIENE VEHÍCULO AUTORIZADO -->
   <div class="alert alert-info" style="margin: 16px 0;">
     <span>🚗</span>
     <div>
@@ -389,13 +427,51 @@ ${esSalida ? `
     `}
   </div>
 `}
+`}
     </div>
   `;
   
   elements.resultado.classList.remove('hidden');
   window.personaActual = data;
 }
-
+async function registrarIngresoConVehiculoAutorizado(persona, vehiculoInfo) {
+  try {
+    mostrarAlerta('Verificando vehículo autorizado...', 'info');
+    
+    // Buscar el vehículo en la tabla vehiculo_seguridad por placa
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    
+    const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        codigo: vehiculoInfo.placa,
+        tipo: 'placa',
+        unidad: sesion.usuario.unidad || ''
+      }),
+    });
+    
+    const resultado = await response.json();
+    
+    if (!resultado.success) {
+      throw new Error(`No se encontró el vehículo ${vehiculoInfo.placa} en el sistema`);
+    }
+    
+    // Usar el ID del vehículo encontrado
+    window.vehiculoEnProceso = resultado.data.id;
+    
+    // Registrar ingreso con ese vehículo
+    await registrarIngresoConVehiculo(persona);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+  
 function solicitarPlacaSalidaWrapper() {
   if (window.personaActual) {
     solicitarPlacaSalida(window.personaActual);
