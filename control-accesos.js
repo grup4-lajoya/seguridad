@@ -423,7 +423,7 @@ ${vehiculoAutorizado ? `
       <button class="btn btn-primary" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)})'>
         ⚠️ Continuar
       </button>
-    ` : tieneVehiculos ? `
+` : tieneVehiculos ? `
       <!-- TIENE VEHÍCULOS REGISTRADOS: Ingreso normal -->
       <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
         ✅ Sí, con vehículo
