@@ -445,7 +445,6 @@ ${vehiculoAutorizado ? `
     `}
   </div>
 `}
-`}
     </div>
   `;
   
@@ -583,6 +582,7 @@ function llenarSelectDependenciasOtraUnidad() {
     select.appendChild(option);
   });
 }
+
 
 // ============================================
 // CONFIRMAR CON VEHÍCULO
