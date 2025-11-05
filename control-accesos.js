@@ -915,6 +915,9 @@ async function registrarIngresoConVehiculoSeleccionado(persona, vehiculo) {
     const sesion = JSON.parse(localStorage.getItem('sesion'));
     const idUsuario = sesion.usuario.id;
     
+// ✅ Verificar si hay datos adicionales de otra unidad
+    const datosAdicionales = window.datosOtraUnidadTemp || null;
+    
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
       method: 'POST',
       headers: {
@@ -927,9 +930,14 @@ async function registrarIngresoConVehiculoSeleccionado(persona, vehiculo) {
         tipo_persona: persona.origen,
         id_vehiculo: vehiculo.id,
         ingreso_con_vehiculo: true,
-        id_usuario: idUsuario
+        id_usuario: idUsuario,
+        motivo_visita: datosAdicionales?.motivo || null,
+        responsable: datosAdicionales?.responsable || null
       }),
     });
+    
+    // ✅ Limpiar datos temporales después de usar
+    window.datosOtraUnidadTemp = null;
     
     const resultado = await response.json();
     
@@ -1941,6 +1949,9 @@ async function registrarIngresoConVehiculo(conductor) {
     const sesion = JSON.parse(localStorage.getItem('sesion'));
     const idUsuario = sesion.usuario.id;
     
+// ✅ Verificar si hay datos adicionales de otra unidad
+    const datosAdicionales = window.datosOtraUnidadTemp || null;
+    
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
       method: 'POST',
       headers: {
@@ -1953,9 +1964,14 @@ async function registrarIngresoConVehiculo(conductor) {
         tipo_persona: conductor.origen,
         id_vehiculo: window.vehiculoEnProceso,
         ingreso_con_vehiculo: true,
-        id_usuario: idUsuario
+        id_usuario: idUsuario,
+        motivo_visita: datosAdicionales?.motivo || null,
+        responsable: datosAdicionales?.responsable || null
       }),
     });
+    
+    // ✅ Limpiar datos temporales después de usar
+    window.datosOtraUnidadTemp = null;
     
     const resultado = await response.json();
     
