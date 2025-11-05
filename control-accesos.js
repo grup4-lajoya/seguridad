@@ -411,37 +411,20 @@ ${vehiculoAutorizado ? `
         🚶 No, sin vehículo
       </button>
 ` : esOtraUnidad ? `
-      <!-- PERSONAL DE OTRA UNIDAD: Primero vehículo, luego motivo -->
+      <!-- PERSONAL DE OTRA UNIDAD -->
       <div class="alert alert-warning" style="margin: 16px 0;">
         <span>⚠️</span>
         <div>
           <strong>Personal de otra unidad</strong><br>
-          ${data.unidad} → Debe indicar motivo y responsable
-        </div>
-      </div>
-      
-      <div class="alert alert-info" style="margin: 16px 0;">
-        <span>🚗</span>
-        <div>
-          <strong>¿Ingresó con su vehículo?</strong>
+          ${data.unidad} → Registrar motivo y responsable
         </div>
       </div>
       
       <div class="resultado-actions">
-        ${tieneVehiculos ? `
-          <button class="btn btn-success" onclick='seleccionarVehiculoOtraUnidad(${JSON.stringify(data)})'>
-            ✅ Sí, con vehículo
-          </button>
-        ` : `
-          <button class="btn btn-success" onclick='solicitarPlacaOtraUnidad(${JSON.stringify(data)})'>
-            ✅ Sí, con vehículo
-          </button>
-        `}
-        <button class="btn btn-primary" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)})'>
-          🚶 No, sin vehículo
+        <button class="btn btn-primary" onclick='iniciarProcesoOtraUnidad(${JSON.stringify(data)})'>
+          ✅ Continuar con registro
         </button>
       </div>
-
 ` : tieneVehiculos ? `
       <!-- TIENE VEHÍCULOS REGISTRADOS: Ingreso normal -->
       <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
@@ -625,21 +608,137 @@ function confirmarDatosOtraUnidadConVehiculo() {
   // Mostrar vehículos para que seleccione
   mostrarVehiculosPersona(window.personaOtraUnidad);
 }
-// 1️⃣ Cuando tiene vehículos registrados
-function seleccionarVehiculoOtraUnidad(data) {
+// ============================================
+// FUNCIONES PARA PERSONAL DE OTRA UNIDAD
+// ============================================
+
+function iniciarProcesoOtraUnidad(data) {
   window.personaOtraUnidad = data;
-  solicitarDatosOtraUnidadConVehiculo(data);
+  mostrarFormularioMotivoResponsable(data);
 }
 
-// 2️⃣ Pedir primero motivo y responsable
-function solicitarDatosOtraUnidadConVehiculo(data) {
-  solicitarDatosOtraUnidad(data);
+function mostrarFormularioMotivoResponsable(persona) {
+  const tieneVehiculos = persona.vehiculos && persona.vehiculos.length > 0;
+  
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #F59E0B;">⚠️</div>
+        <div>
+          <h3>Personal de Otra Unidad</h3>
+          <span class="badge" style="background: #F59E0B; color: white;">OTRA UNIDAD</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-warning">
+          <span>⚠️</span>
+          <div>
+            <strong>${persona.nombre}</strong><br>
+            Unidad: ${persona.unidad}<br>
+            Debe registrar motivo y responsable
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="inputMotivoOtraUnidad">Motivo de Visita: *</label>
+          <input 
+            type="text" 
+            id="inputMotivoOtraUnidad" 
+            placeholder="Ej: REUNIÓN, COORDINACIÓN, ETC"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+            required
+          >
+        </div>
+        
+        <div class="input-group">
+          <label for="selectResponsableOtraUnidad">Responsable: *</label>
+          <select id="selectResponsableOtraUnidad" required style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid #E5E7EB;">
+            <option value="">Seleccione una dependencia</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="validarYPreguntarVehiculo()">
+          ✅ Continuar
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="mostrarPersona(window.personaOtraUnidad)">
+          ← Volver
+        </button>
+      </div>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    llenarSelectDependenciasOtraUnidad();
+    document.getElementById('inputMotivoOtraUnidad')?.focus();
+  }, 100);
 }
 
-// 3️⃣ Cuando NO tiene vehículos registrados
-function solicitarPlacaOtraUnidad(data) {
-  window.personaOtraUnidad = data;
-  solicitarPlacaIngreso(data);
+function validarYPreguntarVehiculo() {
+  const motivo = document.getElementById('inputMotivoOtraUnidad')?.value.trim().toUpperCase();
+  const responsable = document.getElementById('selectResponsableOtraUnidad')?.value;
+  
+  if (!motivo) {
+    mostrarAlerta('El motivo es obligatorio', 'error');
+    document.getElementById('inputMotivoOtraUnidad')?.focus();
+    return;
+  }
+  
+  if (!responsable) {
+    mostrarAlerta('Debe seleccionar un responsable', 'error');
+    document.getElementById('selectResponsableOtraUnidad')?.focus();
+    return;
+  }
+  
+  // Guardar datos temporales
+  window.datosOtraUnidadTemp = { motivo, responsable };
+  
+  // Ahora preguntar por vehículo
+  preguntarVehiculoOtraUnidad();
+}
+
+function preguntarVehiculoOtraUnidad() {
+  const persona = window.personaOtraUnidad;
+  const tieneVehiculos = persona.vehiculos && persona.vehiculos.length > 0;
+  
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #10B981;">🚗</div>
+        <div>
+          <h3>Vehículo</h3>
+          <span class="badge badge-primary">${persona.nombre}</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-info">
+          <span>🚗</span>
+          <div>
+            <strong>¿Ingresó con su vehículo?</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        ${tieneVehiculos ? `
+          <button class="btn btn-success" onclick="mostrarVehiculosPersona(window.personaOtraUnidad)">
+            ✅ Sí, con vehículo
+          </button>
+        ` : `
+          <button class="btn btn-success" onclick="solicitarPlacaIngreso(window.personaOtraUnidad)">
+            ✅ Sí, con vehículo
+          </button>
+        `}
+        <button class="btn btn-primary" onclick="registrarIngreso(window.personaOtraUnidad.id, window.personaOtraUnidad.origen)">
+          🚶 No, sin vehículo
+        </button>
+      </div>
+    </div>
+  `;
 }
 
 // ============================================
@@ -887,6 +986,7 @@ async function procesarIngresoConOtraPlaca() {
       body: JSON.stringify({
         codigo: placa,
         tipo: 'placa',
+        const sesion = JSON.parse(localStorage.getItem('sesion'));
         unidad: sesion.usuario.unidad || ''
       }),
     });
