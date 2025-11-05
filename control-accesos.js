@@ -2166,12 +2166,6 @@ function iniciarEscanerCodigo() {
       ">
       ✕ CERRAR CÁMARA
     </button>
-    <div style="background: #3B82F6; color: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 14px;">
-      <strong>💡 Consejos:</strong><br>
-      • Acerca/aleja hasta que enfoque<br>
-      • Mantén buena iluminación<br>
-      • Coloca el código dentro del recuadro
-    </div>
     <div id="reader-camera"></div>
   `;
   
