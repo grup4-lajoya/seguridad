@@ -71,11 +71,20 @@ function detectarTipoCodigo(codigo) {
     if (limpio.length === 8) {
       return { tipo: 'dni', valor: limpio };
     }
+    // ✅ NUEVO: Soportar pasaportes/carnets numéricos largos
+    if (limpio.length > 8 && limpio.length <= 20) {
+      return { tipo: 'dni', valor: limpio }; // Lo tratamos como documento
+    }
   }
   
-  // Alfanumérico (placa)
+  // Alfanumérico corto (placa)
   if (/^[A-Z0-9-]{5,7}$/.test(limpio)) {
     return { tipo: 'placa', valor: limpio };
+  }
+  
+  // ✅ NUEVO: Alfanumérico largo (pasaporte/carnet)
+  if (/^[A-Z0-9]{9,20}$/.test(limpio)) {
+    return { tipo: 'dni', valor: limpio }; // Lo tratamos como documento
   }
   
   return { tipo: 'desconocido', valor: limpio };
