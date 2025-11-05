@@ -339,7 +339,7 @@ ${esSalida ? `
       </button>
     </div>
   `}
-  ` : `
+` : `
   <!-- Es INGRESO - SIEMPRE PREGUNTAR (para temporales y normales) -->
   
   ${data.visita_autorizada ? `
