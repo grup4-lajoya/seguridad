@@ -296,7 +296,7 @@ function mostrarPersona(data) {
         ${infoIngreso}
       </div>
 
-${esSalida ? `
+      ${esSalida ? `
   <!-- Es SALIDA -->
   ${esTemporal ? `
     <!-- SALIDA TEMPORAL - Simple y directo -->
