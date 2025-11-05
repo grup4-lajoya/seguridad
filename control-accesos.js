@@ -194,6 +194,8 @@ function mostrarPersona(data) {
   const tieneVehiculos = data.vehiculos && data.vehiculos.length > 0;
   const esForaneo = data.origen === 'foraneo';
   const esTemporal = data.tipo_origen === 'temporal' || data.tipo_origen === 'ingreso_temporal';
+  const sesion = JSON.parse(localStorage.getItem('sesion'));
+  const esOtraUnidad = data.origen === 'personal' && data.unidad !== sesion.usuario.unidad;
 
     let vehiculoAutorizado = null;
   if (!esSalida && data.visita_autorizada && data.visita_autorizada.vehiculo_autorizado) {
@@ -408,6 +410,26 @@ ${vehiculoAutorizado ? `
       <button class="btn btn-primary" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
         🚶 No, sin vehículo
       </button>
+   ` : esOtraUnidad ? `
+      <!-- PERSONAL DE OTRA UNIDAD: Pedir motivo y responsable -->
+      <div class="alert alert-warning" style="margin: 16px 0;">
+        <span>⚠️</span>
+        <div>
+          <strong>Personal de otra unidad</strong><br>
+          ${data.unidad} → Debe indicar motivo y responsable
+        </div>
+      </div>
+      
+      <div class="resultado-actions">
+        ${tieneVehiculos ? `
+          <button class="btn btn-success" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)}, true)'>
+            ✅ Sí, con vehículo
+          </button>
+        ` : ''}
+        <button class="btn btn-primary" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)}, false)'>
+          🚶 ${tieneVehiculos ? 'No, sin vehículo' : 'Continuar'}
+        </button>
+      </div>
     ` : tieneVehiculos ? `
       <!-- TIENE VEHÍCULOS REGISTRADOS: Ingreso normal -->
       <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
@@ -465,6 +487,131 @@ async function registrarIngresoConVehiculoAutorizado(persona, vehiculoInfo) {
     
     // Registrar ingreso con ese vehículo
     await registrarIngresoConVehiculo(persona);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    mostrarAlerta(error.message, 'error');
+  }
+}
+// ============================================
+// SOLICITAR DATOS PARA PERSONAL DE OTRA UNIDAD
+// ============================================
+function solicitarDatosOtraUnidad(persona, conVehiculo) {
+  console.log('📋 Solicitando datos adicionales para personal de otra unidad');
+  
+  // Guardar datos en variable global
+  window.personaOtraUnidad = {
+    persona: persona,
+    conVehiculo: conVehiculo
+  };
+  
+  elements.resultado.innerHTML = `
+    <div class="resultado-card">
+      <div class="resultado-header">
+        <div class="resultado-icon" style="background: #F59E0B;">⚠️</div>
+        <div>
+          <h3>Datos Adicionales Requeridos</h3>
+          <span class="badge" style="background: #F59E0B; color: white;">OTRA UNIDAD</span>
+        </div>
+      </div>
+      
+      <div class="resultado-body">
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <div>
+            <strong>${persona.nombre}</strong><br>
+            Unidad: ${persona.unidad}<br>
+            ${conVehiculo ? '🚗 Ingresará con vehículo' : '🚶 Ingresará sin vehículo'}
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="inputMotivoOtraUnidad">Motivo de Visita: *</label>
+          <input 
+            type="text" 
+            id="inputMotivoOtraUnidad" 
+            placeholder="Ej: REUNIÓN, COORDINACIÓN, ETC"
+            autocomplete="off"
+            style="text-transform: uppercase;"
+            required
+          >
+        </div>
+        
+        <div class="input-group">
+          <label for="selectResponsableOtraUnidad">Responsable: *</label>
+          <select id="selectResponsableOtraUnidad" required style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid #E5E7EB;">
+            <option value="">Seleccione una dependencia</option>
+          </select>
+        </div>
+        
+        <div class="alert alert-info" style="margin-top: 12px;">
+          <span>ℹ️</span>
+          <div>
+            <small>* Campos obligatorios</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="resultado-actions">
+        <button class="btn btn-success" onclick="procesarIngresoOtraUnidad()">
+          ✅ Registrar Ingreso
+        </button>
+        <button class="btn" style="background: #6B7280; color: white;" onclick="mostrarPersona(window.personaOtraUnidad.persona)">
+          ← Volver
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Llenar selector de dependencias
+  setTimeout(() => {
+    llenarSelectDependenciasOtraUnidad();
+    document.getElementById('inputMotivoOtraUnidad')?.focus();
+  }, 100);
+}
+
+function llenarSelectDependenciasOtraUnidad() {
+  const select = document.getElementById('selectResponsableOtraUnidad');
+  if (!select || !listaDependencias) return;
+  
+  select.innerHTML = '<option value="">Seleccione una dependencia</option>';
+  
+  listaDependencias.forEach(dep => {
+    const option = document.createElement('option');
+    option.value = dep.descripcion;
+    option.textContent = dep.descripcion;
+    select.appendChild(option);
+  });
+}
+
+async function procesarIngresoOtraUnidad() {
+  try {
+    const motivo = document.getElementById('inputMotivoOtraUnidad')?.value.trim().toUpperCase();
+    const responsable = document.getElementById('selectResponsableOtraUnidad')?.value;
+    
+    if (!motivo) {
+      mostrarAlerta('El motivo es obligatorio', 'error');
+      document.getElementById('inputMotivoOtraUnidad')?.focus();
+      return;
+    }
+    
+    if (!responsable) {
+      mostrarAlerta('Debe seleccionar un responsable', 'error');
+      document.getElementById('selectResponsableOtraUnidad')?.focus();
+      return;
+    }
+    
+    const data = window.personaOtraUnidad;
+    
+    if (data.conVehiculo) {
+      // Si tiene vehículos, mostrar lista para que seleccione
+      window.datosOtraUnidadTemp = { motivo, responsable };
+      mostrarVehiculosPersona(data.persona);
+    } else {
+      // Sin vehículo, registrar directamente
+      window.datosOtraUnidadTemp = { motivo, responsable };
+      await registrarIngreso(data.persona.id, data.persona.origen);
+    }
     
   } catch (error) {
     console.error('❌ Error:', error);
@@ -1556,6 +1703,9 @@ async function registrarIngreso(personaId, origen) {
     const sesion = JSON.parse(localStorage.getItem('sesion'));
     const idUsuario = sesion.usuario.id;
     
+    // ✅ Verificar si hay datos adicionales de otra unidad
+    const datosAdicionales = window.datosOtraUnidadTemp || null;
+    
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.REGISTRAR_INGRESO_SALIDA, {
       method: 'POST',
       headers: {
@@ -1568,9 +1718,14 @@ async function registrarIngreso(personaId, origen) {
         tipo_persona: origen,
         id_vehiculo: null,
         ingreso_con_vehiculo: false,
-        id_usuario: idUsuario
+        id_usuario: idUsuario,
+        motivo_visita: datosAdicionales?.motivo || null,
+        responsable: datosAdicionales?.responsable || null
       }),
     });
+    
+    // ✅ Limpiar datos temporales
+    window.datosOtraUnidadTemp = null;
     
     const resultado = await response.json();
     console.log('📦 Resultado:', resultado);
