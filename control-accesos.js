@@ -422,13 +422,9 @@ ${vehiculoAutorizado ? `
       
       <div class="resultado-actions">
         ${tieneVehiculos ? `
-          <button class="btn btn-success" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)}, true)'>
-            ✅ Sí, con vehículo
-          </button>
-        ` : ''}
-        <button class="btn btn-primary" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)}, false)'>
-          🚶 ${tieneVehiculos ? 'No, sin vehículo' : 'Continuar'}
-        </button>
+      <button class="btn btn-primary" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)})'>
+        ⚠️ Continuar
+      </button>
       </div>
     ` : tieneVehiculos ? `
       <!-- TIENE VEHÍCULOS REGISTRADOS: Ingreso normal -->
@@ -496,32 +492,31 @@ async function registrarIngresoConVehiculoAutorizado(persona, vehiculoInfo) {
 // ============================================
 // SOLICITAR DATOS PARA PERSONAL DE OTRA UNIDAD
 // ============================================
-function solicitarDatosOtraUnidad(persona, conVehiculo) {
+function solicitarDatosOtraUnidad(persona) {
   console.log('📋 Solicitando datos adicionales para personal de otra unidad');
   
-  // Guardar datos en variable global
-  window.personaOtraUnidad = {
-    persona: persona,
-    conVehiculo: conVehiculo
-  };
+  // Guardar persona en variable global
+  window.personaOtraUnidad = persona;
+  
+  const tieneVehiculos = persona.vehiculos && persona.vehiculos.length > 0;
   
   elements.resultado.innerHTML = `
     <div class="resultado-card">
       <div class="resultado-header">
         <div class="resultado-icon" style="background: #F59E0B;">⚠️</div>
         <div>
-          <h3>Datos Adicionales Requeridos</h3>
+          <h3>Personal de Otra Unidad</h3>
           <span class="badge" style="background: #F59E0B; color: white;">OTRA UNIDAD</span>
         </div>
       </div>
       
       <div class="resultado-body">
-        <div class="alert alert-info">
-          <span>ℹ️</span>
+        <div class="alert alert-warning">
+          <span>⚠️</span>
           <div>
             <strong>${persona.nombre}</strong><br>
             Unidad: ${persona.unidad}<br>
-            ${conVehiculo ? '🚗 Ingresará con vehículo' : '🚶 Ingresará sin vehículo'}
+            Debe registrar motivo y responsable
           </div>
         </div>
         
@@ -544,19 +539,24 @@ function solicitarDatosOtraUnidad(persona, conVehiculo) {
           </select>
         </div>
         
-        <div class="alert alert-info" style="margin-top: 12px;">
-          <span>ℹ️</span>
+        <div class="alert alert-info" style="margin-top: 16px;">
+          <span>🚗</span>
           <div>
-            <small>* Campos obligatorios</small>
+            <strong>¿Ingresó con su vehículo?</strong>
           </div>
         </div>
       </div>
 
       <div class="resultado-actions">
-        <button class="btn btn-success" onclick="procesarIngresoOtraUnidad()">
-          ✅ Registrar Ingreso
+        ${tieneVehiculos ? `
+          <button class="btn btn-success" onclick="confirmarDatosOtraUnidadConVehiculo()">
+            ✅ Sí, con vehículo
+          </button>
+        ` : ''}
+        <button class="btn btn-primary" onclick="confirmarDatosOtraUnidadSinVehiculo()">
+          🚶 No, sin vehículo
         </button>
-        <button class="btn" style="background: #6B7280; color: white;" onclick="mostrarPersona(window.personaOtraUnidad.persona)">
+        <button class="btn" style="background: #6B7280; color: white;" onclick="mostrarPersona(window.personaOtraUnidad)">
           ← Volver
         </button>
       </div>
@@ -584,39 +584,70 @@ function llenarSelectDependenciasOtraUnidad() {
   });
 }
 
-async function procesarIngresoOtraUnidad() {
-  try {
-    const motivo = document.getElementById('inputMotivoOtraUnidad')?.value.trim().toUpperCase();
-    const responsable = document.getElementById('selectResponsableOtraUnidad')?.value;
-    
-    if (!motivo) {
-      mostrarAlerta('El motivo es obligatorio', 'error');
-      document.getElementById('inputMotivoOtraUnidad')?.focus();
-      return;
-    }
-    
-    if (!responsable) {
-      mostrarAlerta('Debe seleccionar un responsable', 'error');
-      document.getElementById('selectResponsableOtraUnidad')?.focus();
-      return;
-    }
-    
-    const data = window.personaOtraUnidad;
-    
-    if (data.conVehiculo) {
-      // Si tiene vehículos, mostrar lista para que seleccione
-      window.datosOtraUnidadTemp = { motivo, responsable };
-      mostrarVehiculosPersona(data.persona);
-    } else {
-      // Sin vehículo, registrar directamente
-      window.datosOtraUnidadTemp = { motivo, responsable };
-      await registrarIngreso(data.persona.id, data.persona.origen);
-    }
-    
-  } catch (error) {
-    console.error('❌ Error:', error);
-    mostrarAlerta(error.message, 'error');
+// ============================================
+// CONFIRMAR CON VEHÍCULO
+// ============================================
+function confirmarDatosOtraUnidadConVehiculo() {
+  const motivo = document.getElementById('inputMotivoOtraUnidad')?.value.trim().toUpperCase();
+  const responsable = document.getElementById('selectResponsableOtraUnidad')?.value;
+  
+  if (!motivo) {
+    mostrarAlerta('El motivo es obligatorio', 'error');
+    document.getElementById('inputMotivoOtraUnidad')?.focus();
+    return;
   }
+  
+  if (!responsable) {
+    mostrarAlerta('Debe seleccionar un responsable', 'error');
+    document.getElementById('selectResponsableOtraUnidad')?.focus();
+    return;
+  }
+  
+  // Guardar datos temporales
+  window.datosOtraUnidadTemp = { motivo, responsable };
+  
+  // Mostrar vehículos para que seleccione
+  mostrarVehiculosPersona(window.personaOtraUnidad);
+}
+
+// ============================================
+// CONFIRMAR SIN VEHÍCULO
+// ============================================
+async function confirmarDatosOtraUnidadSinVehiculo() {
+  const motivo = document.getElementById('inputMotivoOtraUnidad')?.value.trim().toUpperCase();
+  const responsable = document.getElementById('selectResponsableOtraUnidad')?.value;
+  
+  if (!motivo) {
+    mostrarAlerta('El motivo es obligatorio', 'error');
+    document.getElementById('inputMotivoOtraUnidad')?.focus();
+    return;
+  }
+  
+  if (!responsable) {
+    mostrarAlerta('Debe seleccionar un responsable', 'error');
+    document.getElementById('selectResponsableOtraUnidad')?.focus();
+    return;
+  }
+  
+  // Guardar datos temporales
+  window.datosOtraUnidadTemp = { motivo, responsable };
+  
+  // Registrar ingreso sin vehículo
+  await registrarIngreso(window.personaOtraUnidad.id, window.personaOtraUnidad.origen);
+}
+
+function llenarSelectDependenciasOtraUnidad() {
+  const select = document.getElementById('selectResponsableOtraUnidad');
+  if (!select || !listaDependencias) return;
+  
+  select.innerHTML = '<option value="">Seleccione una dependencia</option>';
+  
+  listaDependencias.forEach(dep => {
+    const option = document.createElement('option');
+    option.value = dep.descripcion;
+    option.textContent = dep.descripcion;
+    select.appendChild(option);
+  });
 }
   
 function solicitarPlacaSalidaWrapper() {
