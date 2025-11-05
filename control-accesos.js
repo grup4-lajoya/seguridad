@@ -296,7 +296,7 @@ function mostrarPersona(data) {
         ${infoIngreso}
       </div>
 
-      ${esSalida ? `
+  ${esSalida ? `
   <!-- Es SALIDA -->
   ${esTemporal ? `
     <!-- SALIDA TEMPORAL - Simple y directo -->
@@ -439,12 +439,12 @@ ${vehiculoAutorizado ? `
       <button class="btn btn-primary" onclick="registrarIngreso('${data.id}', '${data.origen}')">
         🚶 No, sin vehículo
       </button>
-    `}
+        `}
   </div>
 `}
     </div>
   `;
-  
+    
   elements.resultado.classList.remove('hidden');
   window.personaActual = data;
 }
