@@ -2140,9 +2140,17 @@ function iniciarEscanerCodigo() {
     readerDiv.style.cssText = 'width: 100%; max-width: 500px; margin: 20px auto; position: relative;';
     elements.inputCodigo.parentElement.insertBefore(readerDiv, elements.inputCodigo.nextSibling);
 
+    // ✅ BOTÓN DE CERRAR PRIMERO (antes del video)
+    const btnCerrar = document.createElement('button');
+    btnCerrar.textContent = '✕ Cerrar Cámara';
+    btnCerrar.className = 'btn';
+    btnCerrar.style.cssText = 'background: #EF4444; color: white; margin-bottom: 10px; width: 100%; padding: 14px; font-size: 16px; font-weight: 600; z-index: 1001; position: relative;';
+    btnCerrar.onclick = detenerEscanerCodigo;
+    readerDiv.appendChild(btnCerrar);
+
     // Instrucciones mejoradas
     const instrucciones = document.createElement('div');
-    instrucciones.style.cssText = 'background: #3B82F6; color: white; padding: 15px; border-radius: 8px; margin: 10px 0; text-align: center;';
+    instrucciones.style.cssText = 'background: #3B82F6; color: white; padding: 15px; border-radius: 8px; margin: 10px 0; text-align: center; position: relative; z-index: 1000;';
     instrucciones.innerHTML = `
       <strong>💡 Consejos:</strong><br>
       • Acerca/aleja el celular hasta que enfoque<br>
@@ -2151,14 +2159,6 @@ function iniciarEscanerCodigo() {
       • Mantén quieto el celular 2-3 segundos
     `;
     readerDiv.appendChild(instrucciones);
-    
-    // Botón para cerrar
-    const btnCerrar = document.createElement('button');
-    btnCerrar.textContent = '✕ Cerrar Cámara';
-    btnCerrar.className = 'btn';
-    btnCerrar.style.cssText = 'background: #EF4444; color: white; margin-top: 10px; width: 100%;';
-    btnCerrar.onclick = detenerEscanerCodigo;
-    readerDiv.appendChild(btnCerrar);
   }
   
   document.getElementById('reader').style.display = 'block';
