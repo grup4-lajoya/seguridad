@@ -438,17 +438,16 @@ ${vehiculoAutorizado ? `
       </button>
       <button class="btn btn-primary" onclick="registrarIngreso('${data.id}', '${data.origen}')">
         🚶 No, sin vehículo
-      </button>
-        `}
+        </button>
+    `}
   </div>
+`}
 `}
     </div>
   `;
-    
   elements.resultado.classList.remove('hidden');
   window.personaActual = data;
 }
-
 async function registrarIngresoConVehiculoAutorizado(persona, vehiculoInfo) {
   try {
     mostrarAlerta('Verificando vehículo autorizado...', 'info');
