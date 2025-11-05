@@ -410,7 +410,7 @@ ${vehiculoAutorizado ? `
       <button class="btn btn-primary" onclick='registrarIngresoTemporalDirecto("${data.id}", null, false)'>
         🚶 No, sin vehículo
       </button>
-   ` : esOtraUnidad ? `
+` : esOtraUnidad ? `
       <!-- PERSONAL DE OTRA UNIDAD: Pedir motivo y responsable -->
       <div class="alert alert-warning" style="margin: 16px 0;">
         <span>⚠️</span>
@@ -420,12 +420,9 @@ ${vehiculoAutorizado ? `
         </div>
       </div>
       
-      <div class="resultado-actions">
-        ${tieneVehiculos ? `
       <button class="btn btn-primary" onclick='solicitarDatosOtraUnidad(${JSON.stringify(data)})'>
         ⚠️ Continuar
       </button>
-      </div>
     ` : tieneVehiculos ? `
       <!-- TIENE VEHÍCULOS REGISTRADOS: Ingreso normal -->
       <button class="btn btn-success" onclick='mostrarVehiculosPersona(${JSON.stringify(data)})'>
@@ -451,6 +448,7 @@ ${vehiculoAutorizado ? `
   elements.resultado.classList.remove('hidden');
   window.personaActual = data;
 }
+
 async function registrarIngresoConVehiculoAutorizado(persona, vehiculoInfo) {
   try {
     mostrarAlerta('Verificando vehículo autorizado...', 'info');
