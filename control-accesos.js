@@ -437,9 +437,9 @@ ${vehiculoAutorizado ? `
             ✅ Sí, con vehículo
           </button>
         `}
-        <button class="btn btn-primary" onclick='mostrarFormularioMotivoResponsable(${JSON.stringify(data)})'>
-          🚶 No, sin vehículo
-        </button>
+      <button class="btn btn-primary" onclick='mostrarFormularioMotivoResponsableSinVehiculo(${JSON.stringify(data)})'>
+        🚶 No, sin vehículo
+      </button>
       </div>
 ` : tieneVehiculos ? `
       <!-- TIENE VEHÍCULOS REGISTRADOS: Ingreso normal -->
@@ -742,7 +742,16 @@ async function validarYRegistrarOtraUnidad() {
     window.requiereMotivoResponsable = false;
   }
 }
-
+function mostrarFormularioMotivoResponsableSinVehiculo(persona) {
+  console.log('📋 Formulario motivo/responsable - Sin vehículo');
+  
+  // Guardar persona
+  window.personaOtraUnidad = persona;
+  window.vehiculoSeleccionadoTemp = null;
+  
+  // Llamar al formulario existente
+  mostrarFormularioMotivoResponsable(persona);
+}
 function preguntarVehiculoOtraUnidad() {
   const persona = window.personaOtraUnidad;
   const tieneVehiculos = persona.vehiculos && persona.vehiculos.length > 0;
