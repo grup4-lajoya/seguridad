@@ -1039,6 +1039,8 @@ async function procesarIngresoConOtraPlaca() {
     
     mostrarAlerta('Buscando vehículo...', 'info');
     
+    const sesion = JSON.parse(localStorage.getItem('sesion'));
+    
     const response = await fetch(CONFIG.EDGE_FUNCTIONS.BUSCAR_CODIGO, {
       method: 'POST',
       headers: {
