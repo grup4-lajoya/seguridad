@@ -766,14 +766,6 @@ function preguntarVehiculoOtraUnidad() {
         </div>
       </div>
       
-      <div class="resultado-body">
-        <div class="alert alert-info">
-          <span>🚗</span>
-          <div>
-            <strong>¿Ingresó con su vehículo?</strong>
-          </div>
-        </div>
-      </div>
       <div class="resultado-actions">
   ${tieneVehiculos ? `
     <button class="btn btn-success" onclick="seleccionarVehiculoOtraUnidad()">
