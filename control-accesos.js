@@ -458,6 +458,9 @@ ${vehiculoAutorizado ? `
   `;
   elements.resultado.classList.remove('hidden');
   window.personaActual = data;
+  if (esOtraUnidad) {
+  window.personaOtraUnidad = data;
+}
 }
 async function registrarIngresoConVehiculoAutorizado(persona, vehiculoInfo) {
   try {
