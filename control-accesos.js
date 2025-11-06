@@ -685,10 +685,7 @@ function mostrarFormularioMotivoResponsable(persona) {
   <button class="btn btn-success" onclick="validarYRegistrarOtraUnidad()">
     ✅ Registrar Ingreso
   </button>
-  <button class="btn" style="background: #6B7280; color: white;" onclick="preguntarVehiculoOtraUnidad()">
-    ← Volver
-  </button>
-        <button class="btn" style="background: #6B7280; color: white;" onclick="mostrarPersona(window.personaOtraUnidad)">
+        <button class="btn" style="background: #6B7280; color: white;" onclick="preguntarVehiculoOtraUnidad()">
           ← Volver
         </button>
       </div>
