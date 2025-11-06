@@ -416,13 +416,29 @@ ${vehiculoAutorizado ? `
         <span>⚠️</span>
         <div>
           <strong>Personal de otra unidad</strong><br>
-          ${data.unidad} → Registrar motivo y responsable
+          ${data.unidad}
+        </div>
+      </div>
+      
+      <div class="alert alert-info" style="margin: 16px 0;">
+        <span>🚗</span>
+        <div>
+          <strong>¿Ingresó con su vehículo?</strong>
         </div>
       </div>
       
       <div class="resultado-actions">
-        <button class="btn btn-primary" onclick='iniciarProcesoOtraUnidad(${JSON.stringify(data)})'>
-          ✅ Continuar con registro
+        ${tieneVehiculos ? `
+          <button class="btn btn-success" onclick='seleccionarVehiculoOtraUnidad()'>
+            ✅ Sí, con vehículo
+          </button>
+        ` : `
+          <button class="btn btn-success" onclick='solicitarPlacaParaOtraUnidad()'>
+            ✅ Sí, con vehículo
+          </button>
+        `}
+        <button class="btn btn-primary" onclick='mostrarFormularioMotivoResponsable(${JSON.stringify(data)})'>
+          🚶 No, sin vehículo
         </button>
       </div>
 ` : tieneVehiculos ? `
