@@ -419,14 +419,7 @@ ${vehiculoAutorizado ? `
           ${data.unidad}
         </div>
       </div>
-      
-      <div class="alert alert-info" style="margin: 16px 0;">
-        <span>🚗</span>
-        <div>
-          <strong>¿Ingresó con su vehículo?</strong>
-        </div>
-      </div>
-      
+           
       <div class="resultado-actions">
         ${tieneVehiculos ? `
           <button class="btn btn-success" onclick='seleccionarVehiculoOtraUnidad()'>
