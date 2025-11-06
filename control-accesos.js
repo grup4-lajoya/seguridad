@@ -723,18 +723,25 @@ async function validarYRegistrarOtraUnidad() {
   // Guardar datos temporales
   window.datosOtraUnidadTemp = { motivo, responsable };
   
+  // Obtener persona (puede venir de personaOtraUnidad o personaIngreso)
+  const persona = window.personaOtraUnidad || window.personaIngreso;
+  
+  if (!persona) {
+    mostrarAlerta('Error: No se encontró información de la persona', 'error');
+    return;
+  }
+  
   // Registrar según tenga o no vehículo
   if (window.vehiculoSeleccionadoTemp) {
-    await registrarIngresoConVehiculoSeleccionado(window.personaOtraUnidad, window.vehiculoSeleccionadoTemp);
+    await registrarIngresoConVehiculoSeleccionado(persona, window.vehiculoSeleccionadoTemp);
     // Limpiar
     window.vehiculoSeleccionadoTemp = null;
     window.requiereMotivoResponsable = false;
   } else {
-    await registrarIngreso(window.personaOtraUnidad.id, window.personaOtraUnidad.origen);
+    await registrarIngreso(persona.id, persona.origen);
     window.requiereMotivoResponsable = false;
   }
 }
-
 
 function preguntarVehiculoOtraUnidad() {
   const persona = window.personaOtraUnidad;
